@@ -1,6 +1,6 @@
 # Manutenção Industrial 4.0 🏭
 > **Status do Projeto:** Em desenvolvimento
-** FIGMA - https://www.figma.com/site/klJakKOgXkbPfyMKsJv23Y/Sem-t%C3%ADtulo?node-id=0-1&t=8XgURJ7HsqHtjIfx-1
+##  FIGMA - https://www.figma.com/site/klJakKOgXkbPfyMKsJv23Y/Sem-t%C3%ADtulo?node-id=0-1&t=8XgURJ7HsqHtjIfx-1
 ## O Objetivo 🎯
 O Senai contratou o desenvolvimento desta API para acabar com as fichas físicas penduradas nas máquinas. O foco principal é garantir a disponibilidade dos equipamentos e a produtividade da planta, migrando para um modelo de dados digital onde técnicos registram intervenções via terminais e gerentes acompanham o status da fábrica.
 
