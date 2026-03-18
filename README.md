@@ -5,9 +5,9 @@
 
 ## 🔗 Links do Projeto
 
-* 🎨 [**Protótipo no Figma**](https://narrow-prompt-10254700.figma.site/)
-* 📝 [**Documentação no Notion**](https://www.notion.so/DOCUMENTA-O-3120edbe9abf807aaf54efe87e2b7152)
-* 📋 [**Gestão no Trello**](https://trello.com/b/B8ZllI4b/manutencao-industrial-40)
+ 🎨 [**Protótipo no Figma**](https://narrow-prompt-10254700.figma.site/)
+ 📝 [**Documentação no Notion**](https://www.notion.so/DOCUMENTA-O-3120edbe9abf807aaf54efe87e2b7152)
+ 📋 [**Gestão no Trello**](https://trello.com/b/B8ZllI4b/manutencao-industrial-40)
 
 
 ## 🎯 Objetivo
