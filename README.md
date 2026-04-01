@@ -18,6 +18,7 @@ Este projeto visa a digitalização completa do fluxo de manutenção fabril, su
 * 🎨 [**Protótipo no Figma**](https://narrow-prompt-10254700.figma.site/)
 * 📄 [**Documentação Word**](./Documentação/Manutenção%20Industrial%204.0.pdf)
 * 🗂️ [**Gestão no Trello**](https://trello.com/b/B8ZllI4b/manutencao-industrial-40)
+* 📌 [**Notion**](https://www.notion.so/Manuten-o-Industrial-4-0-2950edbe9abf805c8abae6c957cf9281)
 
 
 ---
