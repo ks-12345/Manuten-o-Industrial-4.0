@@ -4,9 +4,9 @@
 
 | Equipe |
 | :--- |
-| **BEATRIZ DOS SANTOS** |
-| **BRENDA RIBEIRO ALVES** |
-| **MARIA EDUARDA BEZERRA** |
+| **Beatriz dos Santos** |
+| **Brenda Ribeiro Alves** |
+| **Maria Eduarda Bezerra** |
 
 
 ## 🎯 Objetivo 
