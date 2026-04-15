@@ -13,13 +13,26 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database.
      */
-    public function run(): void
-    {
-        // User::factory(10)->create();
+    // database/seeders/DatabaseSeeder.php
+public function run(): void
+{
+    // Localizações
+    $loc = \App\Models\Localizacao::create(['nome' => 'Galpão A', 'pos_x' => 10, 'pos_y' => 20]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-    }
+    // Máquinas
+    \App\Models\Maquina::create([
+        'nome' => 'Fresadora Universal 01',
+        'codigo' => 'FR-001',
+        'localizacao_id' => $loc->id,
+        'status' => 'funcionando',
+        'data_aquisicao' => '2022-01-15',
+    ]);
+
+    // Técnico
+    \App\Models\Tecnico::create([
+        'nome' => 'João Silva',
+        'email' => 'joao@senai.br',
+        'tipo' => 'tecnico',
+    ]);
+}
 }
