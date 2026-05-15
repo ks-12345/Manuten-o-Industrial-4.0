@@ -1,58 +1,26 @@
-// ============================================
-// MAIN.DART - Ponto de Entrada
-// ============================================
-
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/database/isar_service.dart';
+import 'core/router/app_router.dart';
+import 'core/theme/app_theme.dart';
 
-void main() {
-  runApp(const SENAIMaintenanceApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await IsarService.initialize();
+  runApp(const ProviderScope(child: MaintsysApp()));
 }
 
-class SENAIMaintenanceApp extends StatelessWidget {
-  const SENAIMaintenanceApp({super.key});
+class MaintsysApp extends ConsumerWidget {
+  const MaintsysApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SENAI - Gestão de Manutenção',
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(appRouterProvider);
+    return MaterialApp.router(
+      title: 'MaintSys',
+      theme: AppTheme.darkTheme,
+      routerConfig: router,
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: const Color(0xFFB71C1C), // Vermelho SENAI
-        scaffoldBackgroundColor: const Color(0xFFF5F5F5),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFB71C1C),
-          primary: const Color(0xFFB71C1C),
-          secondary: const Color(0xFFD32F2F),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFB71C1C),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Colors.grey),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Colors.grey),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xFFB71C1C), width: 2),
-          ),
-        ),
-      ),
-      home: const LoginScreen(),
     );
   }
 }
