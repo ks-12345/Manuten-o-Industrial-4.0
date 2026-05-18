@@ -1,0 +1,27 @@
+// database/migrations/2024_01_01_000001_create_setores_table.php
+<?php
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::create('setores', function (Blueprint $table) {
+            $table->id();
+            $table->string('nome');
+            $table->string('codigo')->unique()->nullable();
+            $table->text('descricao')->nullable();
+            $table->string('responsavel')->nullable();
+            $table->string('localizacao')->nullable();
+            $table->boolean('ativo')->default(true);
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('setores');
+    }
+};
