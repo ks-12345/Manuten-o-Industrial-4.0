@@ -1,11 +1,15 @@
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
+
 import '../../modules/auth/models/user_model.dart';
 import '../../modules/maquinas/models/machine_model.dart';
 import '../../modules/ocorrencias/models/occurrence_model.dart';
 import '../../modules/checklist/models/checklist_model.dart';
 import '../../modules/preventivas/models/preventive_model.dart';
 import '../../modules/corretivas/models/corrective_model.dart';
+// O schema é gerado pelo Isar (ou stubs no ambiente).
+import '../../modules/part_replacements/models/part_replacement_model.dart';
+// import '../../modules/part_replacements/models/part_replacement_model_schema.dart';
 
 class IsarService {
   IsarService._();
@@ -13,6 +17,7 @@ class IsarService {
 
   static Future<void> initialize() async {
     final dir = await getApplicationDocumentsDirectory();
+
     isar = await Isar.open(
       [
         UserModelSchema,
@@ -29,20 +34,19 @@ class IsarService {
       directory: dir.path,
       inspector: true, // desabilitar em produção
     );
+
     await _seedDataIfEmpty();
   }
 
   static Future<void> _seedDataIfEmpty() async {
     final count = await isar.machineModels.count();
     if (count == 0) {
-      // Seed de dados iniciais para demonstração
       await _insertMockData();
     }
   }
 
   static Future<void> _insertMockData() async {
     await isar.writeTxn(() async {
-      // Inserir setores e máquinas de exemplo
       final usinagem = SectorModel()
         ..name = 'Usinagem'
         ..description = 'Setor de usinagem CNC e convencional';
@@ -55,7 +59,10 @@ class IsarService {
         ..voltage = '380V'
         ..sectorId = usinagem.id
         ..status = MachineStatus.broken
-        ..installationDate = DateTime(2020, 3, 15);
+        ..installationDate = DateTime(2020, 3, 15)
+        ..qrCode =
+            'MAINTSYS-${usinagem.id}-${DateTime.now().millisecondsSinceEpoch}';
+
       await isar.machineModels.put(torno);
     });
   }

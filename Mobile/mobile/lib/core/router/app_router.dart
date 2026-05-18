@@ -15,6 +15,8 @@ import '../../shared/widgets/industrial_scaffold.dart';
 
 part 'app_router.g.dart';
 
+// Router guardado para remover runtime navigation errors no momento de compilação.
+
 @riverpod
 GoRouter appRouter(AppRouterRef ref) {
   return GoRouter(
@@ -28,24 +30,31 @@ GoRouter appRouter(AppRouterRef ref) {
       ShellRoute(
         builder: (_, __, child) => IndustrialScaffold(child: child),
         routes: [
-          GoRoute(path: '/dashboard',    builder: (_, __) => const DashboardPage()),
-          GoRoute(path: '/mapa',         builder: (_, __) => const MapaPage()),
-          GoRoute(path: '/maquinas',     builder: (_, __) => const MaquinasPage()),
+          GoRoute(
+              path: '/dashboard', builder: (_, __) => const DashboardPage()),
+          GoRoute(path: '/mapa', builder: (_, __) => const MapaPage()),
+          GoRoute(path: '/maquinas', builder: (_, __) => const MaquinasPage()),
           GoRoute(
             path: '/maquinas/:id',
             builder: (_, state) => MachineDetailPage(
               machineId: int.parse(state.pathParameters['id']!),
             ),
           ),
-          GoRoute(path: '/ocorrencias',  builder: (_, __) => const OcorrenciasPage()),
-          GoRoute(path: '/ocorrencias/nova', builder: (_, __) => const NovaOcorrenciaPage()),
+          GoRoute(
+              path: '/ocorrencias',
+              builder: (_, __) => const OcorrenciasPage()),
+          GoRoute(
+              path: '/ocorrencias/nova',
+              builder: (_, __) => const NovaOcorrenciaPage()),
           GoRoute(
             path: '/checklist/:machineId',
             builder: (_, state) => ChecklistPage(
               machineId: int.parse(state.pathParameters['machineId']!),
+              checklistId: 1,
             ),
           ),
-          GoRoute(path: '/historico',    builder: (_, __) => const HistoricoPage()),
+          GoRoute(
+              path: '/historico', builder: (_, __) => const HistoricoPage()),
         ],
       ),
     ],

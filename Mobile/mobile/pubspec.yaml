@@ -19,7 +19,7 @@ dependencies:
 
   # Database local
   isar: ^3.1.0+1
-  isar_flutter_libs: ^3.1.0+1
+  isar_flutter_libs: any
 
   # Gráficos
   fl_chart: ^0.67.0
@@ -45,9 +45,16 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^4.0.0
+
   build_runner: ^2.4.9
-  riverpod_generator: ^2.3.11
-  custom_lint: ^0.6.4
+
+  # ISAR
+  isar_generator: ^3.1.0+1
+
+  # Riverpod
+  riverpod_generator: ^2.4.0
+  # riverpod_lint: ^2.3.10
+  # custom_lint: ^0.5.11
 
 flutter:
   uses-material-design: true

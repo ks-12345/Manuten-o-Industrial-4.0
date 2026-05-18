@@ -6,16 +6,19 @@ class ChecklistQuestionWidget extends StatefulWidget {
   final ChecklistQuestionModel question;
   final ChecklistAnswerModel? existingAnswer;
   final void Function(ChecklistAnswerModel answer) onAnswer;
+  final bool disabled;
 
   const ChecklistQuestionWidget({
     super.key,
     required this.question,
     required this.onAnswer,
     this.existingAnswer,
+    this.disabled = false,
   });
 
   @override
-  State<ChecklistQuestionWidget> createState() => _ChecklistQuestionWidgetState();
+  State<ChecklistQuestionWidget> createState() =>
+      _ChecklistQuestionWidgetState();
 }
 
 class _ChecklistQuestionWidgetState extends State<ChecklistQuestionWidget> {
@@ -34,7 +37,9 @@ class _ChecklistQuestionWidgetState extends State<ChecklistQuestionWidget> {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
-          Expanded(child: Text(widget.question.question, style: const TextStyle(fontSize: 12))),
+          Expanded(
+              child: Text(widget.question.question,
+                  style: const TextStyle(fontSize: 12))),
           _buildTypeBadge(),
         ]),
         const SizedBox(height: 10),
@@ -59,7 +64,8 @@ class _ChecklistQuestionWidgetState extends State<ChecklistQuestionWidget> {
       ),
       child: Text(
         labels[widget.question.type] ?? '',
-        style: const TextStyle(fontSize: 8, letterSpacing: 0.5, color: AppColors.textMuted),
+        style: const TextStyle(
+            fontSize: 8, letterSpacing: 0.5, color: AppColors.textMuted),
       ),
     );
   }
@@ -68,14 +74,17 @@ class _ChecklistQuestionWidgetState extends State<ChecklistQuestionWidget> {
     switch (widget.question.type) {
       case QuestionType.yesNo:
         return _BoolAnswerRow(
-          yesLabel: 'SIM', noLabel: 'NÃO',
+          yesLabel: 'SIM',
+          noLabel: 'NÃO',
           value: _boolAnswer,
           onChanged: _onBoolChanged,
         );
       case QuestionType.okProblem:
         return _BoolAnswerRow(
-          yesLabel: 'OK', noLabel: 'PROBLEMA',
-          yesColor: AppColors.success, noColor: AppColors.danger,
+          yesLabel: 'OK',
+          noLabel: 'PROBLEMA',
+          yesColor: AppColors.success,
+          noColor: AppColors.danger,
           value: _boolAnswer,
           onChanged: _onBoolChanged,
         );
@@ -92,7 +101,8 @@ class _ChecklistQuestionWidgetState extends State<ChecklistQuestionWidget> {
           onChanged: (v) => widget.onAnswer(
             ChecklistAnswerModel()
               ..questionId = widget.question.id
-              ..checklistId = 0
+              ..checklistId = widget.existingAnswer?.checklistId ??
+                  widget.question.checklistId
               ..textAnswer = v,
           ),
         );
@@ -100,18 +110,21 @@ class _ChecklistQuestionWidgetState extends State<ChecklistQuestionWidget> {
         return OutlinedButton.icon(
           onPressed: () {/* integrar camera */},
           icon: const Icon(Icons.camera_alt_outlined, size: 16),
-          label: const Text('FOTOGRAFAR', style: TextStyle(fontSize: 10, letterSpacing: 1)),
+          label: const Text('FOTOGRAFAR',
+              style: TextStyle(fontSize: 10, letterSpacing: 1)),
           style: OutlinedButton.styleFrom(foregroundColor: AppColors.info),
         );
     }
   }
 
   void _onBoolChanged(bool value) {
+    if (widget.disabled) return;
     setState(() => _boolAnswer = value);
     widget.onAnswer(
       ChecklistAnswerModel()
         ..questionId = widget.question.id
-        ..checklistId = 0
+        ..checklistId =
+            widget.existingAnswer?.checklistId ?? widget.question.checklistId
         ..boolAnswer = value,
     );
   }
@@ -137,9 +150,17 @@ class _BoolAnswerRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(children: [
-      _AnswerBtn(label: yesLabel, selected: value == true,  color: yesColor, onTap: () => onChanged(true)),
+      _AnswerBtn(
+          label: yesLabel,
+          selected: value == true,
+          color: yesColor,
+          onTap: () => onChanged(true)),
       const SizedBox(width: 8),
-      _AnswerBtn(label: noLabel,  selected: value == false, color: noColor,  onTap: () => onChanged(false)),
+      _AnswerBtn(
+          label: noLabel,
+          selected: value == false,
+          color: noColor,
+          onTap: () => onChanged(false)),
     ]);
   }
 }
@@ -150,7 +171,11 @@ class _AnswerBtn extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  const _AnswerBtn({required this.label, required this.selected, required this.color, required this.onTap});
+  const _AnswerBtn(
+      {required this.label,
+      required this.selected,
+      required this.color,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +191,11 @@ class _AnswerBtn extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: TextStyle(fontSize: 10, letterSpacing: 1, color: selected ? color : AppColors.textMuted, fontWeight: selected ? FontWeight.w700 : FontWeight.w400),
+          style: TextStyle(
+              fontSize: 10,
+              letterSpacing: 1,
+              color: selected ? color : AppColors.textMuted,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w400),
         ),
       ),
     );
