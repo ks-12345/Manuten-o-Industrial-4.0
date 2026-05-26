@@ -1,19 +1,20 @@
 <?php
+
 namespace Database\Seeders;
 
+use App\Models\Maquina;
+use App\Models\Setor;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
-use App\Models\User;
-use App\Models\Setor;
-use App\Models\Maquina;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
         // Roles
-        $admin      = Role::firstOrCreate(['name' => 'admin',      'guard_name' => 'web']);
-        $tecnico    = Role::firstOrCreate(['name' => 'tecnico',    'guard_name' => 'web']);
+        $admin = Role::firstOrCreate(['name' => 'admin',      'guard_name' => 'web']);
+        $tecnico = Role::firstOrCreate(['name' => 'tecnico',    'guard_name' => 'web']);
         $supervisor = Role::firstOrCreate(['name' => 'supervisor', 'guard_name' => 'web']);
 
         // Usuários
@@ -49,19 +50,21 @@ class DatabaseSeeder extends Seeder
 
             // Máquinas por setor
             Maquina::firstOrCreate(
-                ['patrimonio' => $s['codigo'] . '-001'],
+                ['patrimonio' => $s['codigo'].'-001'],
                 [
-                    'setor_id'                => $setor->id,
-                    'nome'                    => 'Torno CNC ' . $s['codigo'],
-                    'modelo'                  => 'TC-2000',
-                    'fabricante'              => 'Romi',
-                    'patrimonio'              => $s['codigo'] . '-001',
-                    'tensao'                  => '220V',
-                    'status'                  => 'operando',
+                    'setor_id' => $setor->id,
+                    'nome' => 'Torno CNC '.$s['codigo'],
+                    'modelo' => 'TC-2000',
+                    'fabricante' => 'Romi',
+                    'patrimonio' => $s['codigo'].'-001',
+                    'tensao' => '220V',
+                    'status' => 'operando',
                     'periodicidade_preventiva' => 'mensal',
-                    'proxima_preventiva'      => now()->addDays(15)->toDateString(),
+                    'proxima_preventiva' => now()->addDays(15)->toDateString(),
                 ]
             );
         }
+
+        $this->call(MaintSysDemoChecklistSeeder::class);
     }
 }

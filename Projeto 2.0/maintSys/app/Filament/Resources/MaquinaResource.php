@@ -1,9 +1,11 @@
 <?php
+
 namespace App\Filament\Resources;
 
-use App\Models\Maquina;
-use App\Enums\StatusMaquina;
 use App\Enums\PeriodicidadePreventiva;
+use App\Enums\StatusMaquina;
+use App\Filament\Resources\MaquinaResource\Pages;
+use App\Models\Maquina;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,10 +15,15 @@ use Filament\Tables\Table;
 class MaquinaResource extends Resource
 {
     protected static ?string $model = Maquina::class;
+
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+
     protected static ?string $navigationGroup = 'Infraestrutura';
+
     protected static ?int $navigationSort = 2;
+
     protected static ?string $label = 'Máquina';
+
     protected static ?string $pluralLabel = 'Máquinas';
 
     public static function form(Form $form): Form
@@ -77,6 +84,7 @@ class MaquinaResource extends Resource
             Forms\Components\Section::make('Mídia e Observações')
                 ->schema([
                     Forms\Components\FileUpload::make('foto')
+                        ->disk(config('maintsys.upload_disk'))
                         ->image()->imageEditor()
                         ->directory('maquinas')->columnSpanFull(),
                     Forms\Components\Textarea::make('observacoes')
@@ -102,17 +110,17 @@ class MaquinaResource extends Resource
                     ->searchable()->toggleable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge()
-                    ->formatStateUsing(fn($state) => $state->getLabel())
-                    ->color(fn($state) => match($state) {
-                        StatusMaquina::Operando   => 'success',
-                        StatusMaquina::Atencao    => 'warning',
-                        StatusMaquina::Quebrada   => 'danger',
+                    ->formatStateUsing(fn ($state) => $state->getLabel())
+                    ->color(fn ($state) => match ($state) {
+                        StatusMaquina::Operando => 'success',
+                        StatusMaquina::Atencao => 'warning',
+                        StatusMaquina::Quebrada => 'danger',
                         StatusMaquina::Manutencao => 'info',
                     }),
                 Tables\Columns\TextColumn::make('proxima_preventiva')
                     ->label('Próx. Preventiva')
                     ->date('d/m/Y')
-                    ->color(fn($record) => $record->isPreventivaAtrasada() ? 'danger' : (
+                    ->color(fn ($record) => $record->isPreventivaAtrasada() ? 'danger' : (
                         $record->isPreventivaPróxima() ? 'warning' : 'success'
                     )),
                 Tables\Columns\IconColumn::make('ativo')->boolean(),
@@ -125,7 +133,6 @@ class MaquinaResource extends Resource
                 Tables\Filters\TernaryFilter::make('ativo'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ]);
     }
@@ -133,10 +140,9 @@ class MaquinaResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListMaquinas::route('/'),
+            'index' => Pages\ListMaquinas::route('/'),
             'create' => Pages\CreateMaquina::route('/create'),
-            'edit'   => Pages\EditMaquina::route('/{record}/edit'),
-            'view'   => Pages\ViewMaquina::route('/{record}'),
+            'edit' => Pages\EditMaquina::route('/{record}/edit'),
         ];
     }
 }

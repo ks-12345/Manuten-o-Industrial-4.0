@@ -6,23 +6,26 @@ use App\Filament\Resources\Maquinas\Pages\CreateMaquina;
 use App\Filament\Resources\Maquinas\Pages\EditMaquina;
 use App\Filament\Resources\Maquinas\Pages\ListMaquinas;
 use App\Filament\Resources\Maquinas\Pages\ViewMaquina;
-use App\Filament\Resources\Maquinas\Schemas\MaquinaForm;
 use App\Filament\Resources\Maquinas\Schemas\MaquinaInfolist;
-use App\Filament\Resources\Maquinas\Tables\MaquinasTable;
 use App\Models\Maquina;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
-use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Forms\Components\{Select, TextInput, DatePicker, Textarea};
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\{TextColumn, BadgeColumn};
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 
 
 class MaquinaResource extends Resource
 {
+    protected static ?string $model = Maquina::class;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCog6Tooth;
+
+    protected static ?string $recordTitleAttribute = 'nome';
+
     public static function form(Schema $schema):Schema{
     return $schema->components([
         TextInput::make('nome')->required()->maxLength(255),
@@ -70,5 +73,20 @@ public static function table(Table $table): Table
                 'risco'       => 'Risco',
             ]),
         ]);
+}
+
+public static function infolist(Schema $schema): Schema
+{
+    return MaquinaInfolist::configure($schema);
+}
+
+public static function getPages(): array
+{
+    return [
+        'index' => ListMaquinas::route('/'),
+        'create' => CreateMaquina::route('/create'),
+        'view' => ViewMaquina::route('/{record}'),
+        'edit' => EditMaquina::route('/{record}/edit'),
+    ];
 }
 }

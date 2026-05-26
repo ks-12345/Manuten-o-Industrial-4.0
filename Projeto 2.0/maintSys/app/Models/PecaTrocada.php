@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -6,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PecaTrocada extends Model
 {
+    protected $table = 'pecas_trocadas';
+
     protected $fillable = [
         'corretiva_id', 'maquina_id', 'tecnico_id',
         'nome_peca', 'codigo_peca', 'quantidade',

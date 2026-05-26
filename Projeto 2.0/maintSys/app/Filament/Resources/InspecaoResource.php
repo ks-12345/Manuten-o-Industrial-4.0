@@ -3,15 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\InspecaoResource\Pages;
-use App\Filament\Resources\InspecaoResource\RelationManagers;
 use App\Models\Inspecao;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class InspecaoResource extends Resource
 {
@@ -37,6 +33,11 @@ class InspecaoResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('executar')
+                    ->label('Executar')
+                    ->icon('heroicon-o-clipboard-document-check')
+                    ->color('warning')
+                    ->url(fn (Inspecao $record): string => static::getUrl('executar', ['record' => $record])),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -58,6 +59,7 @@ class InspecaoResource extends Resource
         return [
             'index' => Pages\ListInspecaos::route('/'),
             'create' => Pages\CreateInspecao::route('/create'),
+            'executar' => Pages\Executar::route('/{record}/executar'),
             'edit' => Pages\EditInspecao::route('/{record}/edit'),
         ];
     }

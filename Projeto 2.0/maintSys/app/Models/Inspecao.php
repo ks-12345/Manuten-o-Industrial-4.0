@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use App\Enums\StatusInspecao;
@@ -8,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Inspecao extends Model
 {
+    protected $table = 'inspecoes';
+
     protected $fillable = [
         'ocorrencia_id', 'maquina_id', 'tecnico_id',
         'diagnostico', 'observacoes', 'outro_problema',
@@ -16,9 +19,9 @@ class Inspecao extends Model
     ];
 
     protected $casts = [
-        'status'        => StatusInspecao::class,
+        'status' => StatusInspecao::class,
         'outro_problema' => 'boolean',
-        'iniciado_em'   => 'datetime',
+        'iniciado_em' => 'datetime',
         'finalizado_em' => 'datetime',
     ];
 

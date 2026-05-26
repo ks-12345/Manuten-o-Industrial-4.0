@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Setor extends Model
 {
     use SoftDeletes;
-
+protected $table = 'setores';
     protected $fillable = [
         'nome', 'codigo', 'descricao',
         'responsavel', 'localizacao', 'ativo',

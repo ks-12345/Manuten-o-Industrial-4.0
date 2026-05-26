@@ -19,13 +19,28 @@ class ChecklistModeloResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                //
-            ]);
-    }
+public static function form(Form $form): Form
+{
+    return $form
+        ->schema([
+            Forms\Components\Select::make('maquina_id')
+                ->label('Máquina')
+                ->relationship('maquina', 'nome')
+                ->required(),
+
+            Forms\Components\TextInput::make('nome')
+                ->required(),
+
+            Forms\Components\Select::make('tipo')
+                ->label('Tipo de Checklist')
+                ->options([
+                    'preventiva' => 'Preventiva',
+                    'corretiva' => 'Corretiva',
+                    'inspecao' => 'Inspeção',
+                ])
+                ->required(),
+        ]);
+}
 
     public static function table(Table $table): Table
     {

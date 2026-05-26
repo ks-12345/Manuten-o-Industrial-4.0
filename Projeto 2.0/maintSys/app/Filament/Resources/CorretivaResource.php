@@ -3,15 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CorretivaResource\Pages;
-use App\Filament\Resources\CorretivaResource\RelationManagers;
 use App\Models\Corretiva;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class CorretivaResource extends Resource
 {
@@ -37,6 +33,11 @@ class CorretivaResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('executar')
+                    ->label('Executar')
+                    ->icon('heroicon-o-wrench-screwdriver')
+                    ->color('warning')
+                    ->url(fn (Corretiva $record): string => static::getUrl('executar', ['record' => $record])),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -58,6 +59,7 @@ class CorretivaResource extends Resource
         return [
             'index' => Pages\ListCorretivas::route('/'),
             'create' => Pages\CreateCorretiva::route('/create'),
+            'executar' => Pages\Executar::route('/{record}/executar'),
             'edit' => Pages\EditCorretiva::route('/{record}/edit'),
         ];
     }

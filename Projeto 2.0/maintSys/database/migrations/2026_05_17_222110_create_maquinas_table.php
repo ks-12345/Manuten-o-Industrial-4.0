@@ -1,10 +1,11 @@
-// database/migrations/2024_01_01_000002_create_maquinas_table.php
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('maquinas', function (Blueprint $table) {
