@@ -23,7 +23,28 @@ class SetorResource extends Resource
     {
         return $form
             ->schema([
-                //
+                Forms\Components\Section::make('Informações do Setor')
+                    ->schema([
+                        Forms\Components\Grid::make(2)->schema([
+                            Forms\Components\TextInput::make('nome')
+                                ->required()
+                                ->maxLength(255),
+                            Forms\Components\TextInput::make('codigo')
+                                ->required()
+                                ->maxLength(50),
+                        ]),
+                        Forms\Components\Textarea::make('descricao')
+                            ->rows(3)
+                            ->columnSpanFull(),
+                        Forms\Components\Grid::make(2)->schema([
+                            Forms\Components\TextInput::make('responsavel')
+                                ->maxLength(255),
+                            Forms\Components\TextInput::make('localizacao')
+                                ->maxLength(255),
+                        ]),
+                        Forms\Components\Toggle::make('ativo')
+                            ->default(true),
+                    ]),
             ]);
     }
 
@@ -31,10 +52,31 @@ class SetorResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('codigo')
+                    ->label('Código')
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('nome')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('descricao')
+                    ->limit(50)
+                    ->wrap()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('responsavel')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('localizacao')
+                    ->searchable(),
+                Tables\Columns\IconColumn::make('ativo')
+                    ->boolean(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Criado em')
+                    ->date('d/m/Y')
+                    ->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\TernaryFilter::make('ativo'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
