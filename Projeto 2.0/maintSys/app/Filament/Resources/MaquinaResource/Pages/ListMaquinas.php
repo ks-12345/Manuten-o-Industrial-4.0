@@ -10,6 +10,8 @@ class ListMaquinas extends ListRecords
 {
     protected static string $resource = MaquinaResource::class;
 
+    protected static string $view = 'filament.resources.maquina-resource.pages.list-maquinas';
+
     protected function getHeaderActions(): array
     {
         return [

@@ -10,6 +10,8 @@ class ViewMaquina extends ViewRecord
 {
     protected static string $resource = MaquinaResource::class;
 
+    protected static string $view = 'filament.resources.maquina-resource.pages.view-maquina';
+
     protected function getHeaderActions(): array
     {
         return [

@@ -10,6 +10,8 @@ class ListChecklistModelos extends ListRecords
 {
     protected static string $resource = ChecklistModeloResource::class;
 
+    protected static string $view = 'filament.resources.checklist-modelo-resource.pages.list-checklist-modelos';
+
     protected function getHeaderActions(): array
     {
         return [

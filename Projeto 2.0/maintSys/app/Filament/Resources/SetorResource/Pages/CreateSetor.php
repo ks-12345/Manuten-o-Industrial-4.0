@@ -9,4 +9,6 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateSetor extends CreateRecord
 {
     protected static string $resource = SetorResource::class;
+
+    protected static string $view = 'filament.resources.setor-resource.pages.create-setor';
 }

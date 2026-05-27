@@ -9,4 +9,6 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateMaquina extends CreateRecord
 {
     protected static string $resource = MaquinaResource::class;
+
+    protected static string $view = 'filament.resources.maquina-resource.pages.create-maquina';
 }

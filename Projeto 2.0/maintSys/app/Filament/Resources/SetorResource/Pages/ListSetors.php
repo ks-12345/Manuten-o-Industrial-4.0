@@ -10,6 +10,8 @@ class ListSetors extends ListRecords
 {
     protected static string $resource = SetorResource::class;
 
+    protected static string $view = 'filament.resources.setor-resource.pages.list-setors';
+
     protected function getHeaderActions(): array
     {
         return [

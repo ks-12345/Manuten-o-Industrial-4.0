@@ -10,6 +10,8 @@ class EditPecaTrocada extends EditRecord
 {
     protected static string $resource = PecaTrocadaResource::class;
 
+    protected static string $view = 'filament.resources.peca-trocada-resource.pages.edit-peca-trocada';
+
     protected function getHeaderActions(): array
     {
         return [

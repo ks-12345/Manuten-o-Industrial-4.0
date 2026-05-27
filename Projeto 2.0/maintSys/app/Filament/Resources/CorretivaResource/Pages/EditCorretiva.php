@@ -10,6 +10,8 @@ class EditCorretiva extends EditRecord
 {
     protected static string $resource = CorretivaResource::class;
 
+    protected static string $view = 'filament.resources.corretiva-resource.pages.edit-corretiva';
+
     protected function getHeaderActions(): array
     {
         return [

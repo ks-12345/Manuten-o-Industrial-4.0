@@ -20,12 +20,26 @@ class PecaTrocadaResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                //
-            ]);
-    }
+{
+    return $form
+        ->schema([
+
+            Forms\Components\Select::make('corretiva_id')
+                ->label('Ordem Corretiva')
+                ->relationship('corretiva', 'id') // ou troque por "descricao" se existir
+                ->searchable()
+                ->required(),
+
+            Forms\Components\TextInput::make('nome_peca')
+                ->label('Peça')
+                ->required(),
+
+            Forms\Components\TextInput::make('quantidade')
+                ->numeric()
+                ->default(1)
+                ->required(),
+        ]);
+}
 
     public static function table(Table $table): Table
     {

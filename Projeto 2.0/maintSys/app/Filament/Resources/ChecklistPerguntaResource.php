@@ -20,12 +20,25 @@ class ChecklistPerguntaResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                //
-            ]);
-    }
+{
+    return $form
+        ->schema([
+
+            Forms\Components\Select::make('checklist_modelo_id')
+                ->label('Checklist Modelo')
+                ->relationship('checklistModelo', 'nome')
+                ->searchable()
+                ->required(),
+
+            Forms\Components\Textarea::make('pergunta')
+                ->label('Pergunta')
+                ->required(),
+
+            Forms\Components\TextInput::make('ordem')
+                ->numeric()
+                ->default(1),
+        ]);
+}
 
     public static function table(Table $table): Table
     {

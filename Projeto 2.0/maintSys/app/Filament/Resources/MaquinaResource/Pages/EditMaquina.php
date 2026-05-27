@@ -10,6 +10,8 @@ class EditMaquina extends EditRecord
 {
     protected static string $resource = MaquinaResource::class;
 
+    protected static string $view = 'filament.resources.maquina-resource.pages.edit-maquina';
+
     protected function getHeaderActions(): array
     {
         return [

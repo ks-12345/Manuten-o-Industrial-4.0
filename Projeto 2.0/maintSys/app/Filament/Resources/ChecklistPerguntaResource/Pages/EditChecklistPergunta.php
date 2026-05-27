@@ -10,6 +10,8 @@ class EditChecklistPergunta extends EditRecord
 {
     protected static string $resource = ChecklistPerguntaResource::class;
 
+    protected static string $view = 'filament.resources.checklist-pergunta-resource.pages.edit-checklist-pergunta';
+
     protected function getHeaderActions(): array
     {
         return [

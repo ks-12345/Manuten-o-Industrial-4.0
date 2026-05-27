@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InspecaoResource\Pages;
 use App\Models\Inspecao;
+use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -16,12 +17,24 @@ class InspecaoResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                //
-            ]);
-    }
+{
+    return $form
+        ->schema([
+
+            Forms\Components\Select::make('ocorrencia_id')
+                ->label('Ocorrência')
+                ->relationship('ocorrencia', 'titulo') // altere para o campo correto
+                ->searchable()
+                ->required(),
+
+            Forms\Components\Textarea::make('observacoes')
+                ->label('Observações'),
+
+            Forms\Components\DatePicker::make('data_inspecao')
+                ->label('Data da Inspeção')
+                ->required(),
+        ]);
+}
 
     public static function table(Table $table): Table
     {

@@ -10,6 +10,8 @@ class ListPreventivas extends ListRecords
 {
     protected static string $resource = PreventivaResource::class;
 
+    protected static string $view = 'filament.resources.preventiva-resource.pages.list-preventivas';
+
     protected function getHeaderActions(): array
     {
         return [

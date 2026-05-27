@@ -9,4 +9,6 @@ use Filament\Resources\Pages\CreateRecord;
 class CreatePecaTrocada extends CreateRecord
 {
     protected static string $resource = PecaTrocadaResource::class;
+
+    protected static string $view = 'filament.resources.peca-trocada-resource.pages.create-peca-trocada';
 }

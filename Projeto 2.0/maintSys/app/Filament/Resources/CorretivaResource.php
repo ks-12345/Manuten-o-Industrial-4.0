@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CorretivaResource\Pages;
 use App\Models\Corretiva;
+use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -16,12 +17,23 @@ class CorretivaResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                //
-            ]);
-    }
+{
+    return $form
+        ->schema([
+
+            Forms\Components\Select::make('ocorrencia_id')
+                ->label('Ocorrência')
+                ->relationship('ocorrencia', 'titulo') // troque "titulo" pelo campo correto
+                ->searchable()
+                ->required(),
+
+            Forms\Components\Textarea::make('descricao')
+                ->label('Descrição'),
+
+            Forms\Components\DatePicker::make('data_execucao')
+                ->label('Data da Execução'),
+        ]);
+}
 
     public static function table(Table $table): Table
     {

@@ -10,6 +10,8 @@ class ListOcorrencias extends ListRecords
 {
     protected static string $resource = OcorrenciaResource::class;
 
+    protected static string $view = 'filament.resources.ocorrencia-resource.pages.list-ocorrencias';
+
     protected function getHeaderActions(): array
     {
         return [

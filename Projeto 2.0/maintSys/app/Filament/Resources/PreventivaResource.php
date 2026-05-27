@@ -20,12 +20,23 @@ class PreventivaResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                //
-            ]);
-    }
+{
+    return $form
+        ->schema([
+            Forms\Components\Select::make('maquina_id')
+                ->label('Máquina')
+                ->relationship('maquina', 'nome')
+                ->searchable()
+                ->required(),
+
+            Forms\Components\DatePicker::make('data_programada')
+                ->label('Data Programada')
+                ->required(),
+
+            Forms\Components\Textarea::make('descricao')
+                ->label('Descrição'),
+        ]);
+}
 
     public static function table(Table $table): Table
     {

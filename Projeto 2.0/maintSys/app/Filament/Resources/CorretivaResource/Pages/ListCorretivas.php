@@ -10,6 +10,8 @@ class ListCorretivas extends ListRecords
 {
     protected static string $resource = CorretivaResource::class;
 
+    protected static string $view = 'filament.resources.corretiva-resource.pages.list-corretivas';
+
     protected function getHeaderActions(): array
     {
         return [

@@ -10,6 +10,8 @@ class ListChecklistPerguntas extends ListRecords
 {
     protected static string $resource = ChecklistPerguntaResource::class;
 
+    protected static string $view = 'filament.resources.checklist-pergunta-resource.pages.list-checklist-perguntas';
+
     protected function getHeaderActions(): array
     {
         return [

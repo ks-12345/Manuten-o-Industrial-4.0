@@ -9,4 +9,6 @@ use Filament\Resources\Pages\CreateRecord;
 class CreatePreventiva extends CreateRecord
 {
     protected static string $resource = PreventivaResource::class;
+
+    protected static string $view = 'filament.resources.preventiva-resource.pages.create-preventiva';
 }

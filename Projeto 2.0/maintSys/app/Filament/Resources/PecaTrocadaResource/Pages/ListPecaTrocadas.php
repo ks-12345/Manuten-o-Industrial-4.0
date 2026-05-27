@@ -10,6 +10,8 @@ class ListPecaTrocadas extends ListRecords
 {
     protected static string $resource = PecaTrocadaResource::class;
 
+    protected static string $view = 'filament.resources.peca-trocada-resource.pages.list-peca-trocadas';
+
     protected function getHeaderActions(): array
     {
         return [

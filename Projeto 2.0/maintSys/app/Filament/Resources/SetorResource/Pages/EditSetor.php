@@ -10,6 +10,8 @@ class EditSetor extends EditRecord
 {
     protected static string $resource = SetorResource::class;
 
+    protected static string $view = 'filament.resources.setor-resource.pages.edit-setor';
+
     protected function getHeaderActions(): array
     {
         return [
