@@ -1,0 +1,3 @@
+class OccurrenceRemoteMapper {
+  const OccurrenceRemoteMapper();
+}
