@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Filament\Widgets;
+
+use App\Models\Ocorrencia;
+use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+use Filament\Widgets\StatsOverviewWidget\Stat;
+
+class StatsProfessorWidget extends BaseWidget
+{
+    protected static ?int $sort = 1;
+
+    protected function getStats(): array
+    {
+        $userId = auth()->id();
+
+        return [
+            Stat::make('Minhas Ocorrências', Ocorrencia::where('professor_id', $userId)->count())
+                ->description('Total registradas')
+                ->descriptionIcon('heroicon-o-document-text')
+                ->color('primary'),
+
+            Stat::make('Em Aberto', Ocorrencia::where('professor_id', $userId)->where('status', 'aberta')->count())
+                ->description('Aguardando técnico')
+                ->descriptionIcon('heroicon-o-clock')
+                ->color('warning'),
+
+            Stat::make('Em Andamento', Ocorrencia::where('professor_id', $userId)
+                ->whereIn('status', ['em_analise', 'aguardando_orcamento', 'aguardando_peca', 'em_corretiva'])
+                ->count())
+                ->description('Em tratamento')
+                ->descriptionIcon('heroicon-o-arrow-path')
+                ->color('info'),
+
+            Stat::make('Finalizadas', Ocorrencia::where('professor_id', $userId)->where('status', 'finalizada')->count())
+                ->description('Resolvidas')
+                ->descriptionIcon('heroicon-o-check-circle')
+                ->color('success'),
+        ];
+    }
+
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+        return ($user?->hasRole('professor') && !$user->hasRole('admin'))
+            || session('perfil_ativo') === 'professor';
+    }
+}
