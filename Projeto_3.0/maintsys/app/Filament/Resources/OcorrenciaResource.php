@@ -19,6 +19,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class OcorrenciaResource extends Resource
 {
@@ -31,7 +32,7 @@ class OcorrenciaResource extends Resource
 
     public static function canAccess(): bool
     {
-        $user = auth()->user();
+        $user = Auth::user();
         return $user?->hasPermissionTo('ocorrencias.view')
             || $user?->hasPermissionTo('ocorrencias.view_own')
             || $user?->hasPermissionTo('ocorrencias.create');
@@ -40,7 +41,7 @@ class OcorrenciaResource extends Resource
     /** Filtrar ocorrências por perfil do usuário logado */
     public static function getEloquentQuery(): Builder
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $query = parent::getEloquentQuery()->with(['maquina.setor', 'professor', 'tecnico']);
 
         // Professor vê apenas as próprias ocorrências
@@ -92,7 +93,7 @@ class OcorrenciaResource extends Resource
             Forms\Components\Section::make('Atribuição (Admin)')
                 ->icon('heroicon-o-user-plus')
                 ->columns(2)
-                ->visible(fn() => auth()->user()->hasRole('admin'))
+                ->visible(fn() => Auth::user()->hasRole('admin'))
                 ->schema([
                     Forms\Components\Select::make('tecnico_id')
                         ->label('Técnico Responsável')
@@ -179,7 +180,7 @@ class OcorrenciaResource extends Resource
 
                 Tables\Filters\Filter::make('minhas')
                     ->label('Minhas Ocorrências')
-                    ->query(fn(Builder $q) => $q->where('professor_id', auth()->id())),
+                    ->query(fn(Builder $q) => $q->where('professor_id', Auth::id())),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -191,9 +192,9 @@ class OcorrenciaResource extends Resource
                     ->color('success')
                     ->requiresConfirmation()
                     ->modalDescription('Você será atribuído como técnico responsável por esta ocorrência.')
-                    ->visible(fn($record) => auth()->user()->can('assumir', $record))
+                    ->visible(fn($record) => Auth::user()->can('assumir', $record))
                     ->action(function ($record) {
-                        app(OcorrenciaService::class)->assumir($record, auth()->user());
+                        app(OcorrenciaService::class)->assumir($record, Auth::user());
                         Notification::make()->success()->title('Ocorrência assumida!')->send();
                     }),
 
@@ -208,9 +209,9 @@ class OcorrenciaResource extends Resource
                             ->required()
                             ->rows(3),
                     ])
-                    ->visible(fn($record) => auth()->user()->can('cancelar', $record))
+                    ->visible(fn($record) => Auth::user()->can('cancelar', $record))
                     ->action(function ($record, array $data) {
-                        app(OcorrenciaService::class)->cancelar($record, auth()->user(), $data['motivo']);
+                        app(OcorrenciaService::class)->cancelar($record, Auth::user(), $data['motivo']);
                         Notification::make()->success()->title('Ocorrência cancelada.')->send();
                     }),
 
@@ -219,11 +220,11 @@ class OcorrenciaResource extends Resource
                     ->label('Iniciar Inspeção')
                     ->icon('heroicon-o-magnifying-glass')
                     ->color('info')
-                    ->visible(fn($record) => $record->tecnico_id === auth()->id()
+                    ->visible(fn($record) => $record->tecnico_id === Auth::id()
                         && $record->status->value === 'em_analise'
                         && !$record->inspecao)
                     ->action(function ($record) {
-                        app(\App\Services\InspecaoService::class)->iniciar($record, auth()->user());
+                        app(\App\Services\InspecaoService::class)->iniciar($record, Auth::user());
                         Notification::make()->success()->title('Inspeção iniciada!')->send();
                     }),
             ])

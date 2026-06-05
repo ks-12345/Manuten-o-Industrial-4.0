@@ -79,16 +79,28 @@ class AdminPanelProvider extends PanelProvider
                 PreventivaResource::class,
                 ChecklistModeloResource::class,
             ])
-            ->pages([
-                MapaMaquinas::class,
-            ])
-            ->widgets([
-                StatsAdminWidget::class,
-                StatsProfessorWidget::class,
-                StatsTecnicoWidget::class,
-                OcorrenciasRecentesWidget::class,
-                PreventivasPendentesWidget::class,
-            ])
+// Adicionar às pages:
+->pages([
+    \App\Filament\Pages\MapaMaquinas::class,
+    \App\Filament\Pages\Indicadores::class,
+    \App\Filament\Pages\RelatorioManutencao::class,
+    \App\Filament\Pages\Dashboard::class,
+])
+
+// Adicionar aos widgets:
+->widgets([
+    // Existentes da Fase 3...
+    \App\Filament\Widgets\Kpi\MtbfMttrWidget::class,
+    \App\Filament\Widgets\Kpi\ResumoMesWidget::class,
+    \App\Filament\Widgets\AlertasWidget::class,
+    \App\Filament\Widgets\Charts\OcorrenciasPorStatusChart::class,
+    \App\Filament\Widgets\Charts\OcorrenciasPorMesChart::class,
+    \App\Filament\Widgets\Charts\FalhasPorMaquinaChart::class,
+    \App\Filament\Widgets\Charts\FalhasPorSetorChart::class,
+    \App\Filament\Widgets\Charts\CustosMensaisChart::class,
+    \App\Filament\Widgets\Charts\CustosPorMaquinaChart::class,
+    \App\Filament\Widgets\Charts\PreventivasRealizadasChart::class,
+])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -104,5 +116,7 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+            
     }
+    
 }

@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class PreventivaResource extends Resource
 {
@@ -27,13 +28,13 @@ class PreventivaResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasPermissionTo('preventivas.view') ?? false;
+        return Auth::user()?->hasPermissionTo('preventivas.view') ?? false;
     }
 
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()->with(['maquina.setor', 'tecnico']);
-        $user  = auth()->user();
+        $user  = Auth::user();
 
         if (!$user->hasRole('admin')) {
             $query->where(fn($q) => $q->where('tecnico_id', $user->id)
@@ -152,7 +153,7 @@ class PreventivaResource extends Resource
                     ->visible(fn($r) => in_array($r->status, ['pendente', 'atrasada']))
                     ->requiresConfirmation()
                     ->action(function ($record) {
-                        app(PreventivaService::class)->iniciar($record, auth()->user());
+                        app(PreventivaService::class)->iniciar($record, Auth::user());
                         Notification::make()->success()->title('Preventiva iniciada!')->send();
                     }),
 
@@ -169,7 +170,7 @@ class PreventivaResource extends Resource
                     ->action(function ($record, array $data) {
                         app(PreventivaService::class)->finalizar(
                             $record,
-                            auth()->user(),
+                            Auth::user(),
                             $data['observacoes']    ?? null,
                             (float) ($data['custo']          ?? 0),
                             isset($data['tempo_execucao']) ? (int) $data['tempo_execucao'] : null,
@@ -178,14 +179,14 @@ class PreventivaResource extends Resource
                     }),
 
                 Tables\Actions\EditAction::make()
-                    ->visible(fn($r) => $r->status === 'pendente' && auth()->user()->hasRole('admin')),
+                    ->visible(fn($r) => $r->status === 'pendente' && Auth::user()->hasRole('admin')),
             ])
             ->headerActions([
                 Tables\Actions\Action::make('gerar_automaticas')
                     ->label('Gerar Automáticas')
                     ->icon('heroicon-o-sparkles')
                     ->color('warning')
-                    ->visible(fn() => auth()->user()->hasRole('admin'))
+                    ->visible(fn() => Auth::user()->hasRole('admin'))
                     ->requiresConfirmation()
                     ->modalDescription('Isso irá gerar preventivas para os próximos 3 meses para todas as máquinas configuradas.')
                     ->action(function () {
@@ -197,11 +198,12 @@ class PreventivaResource extends Resource
             ]);
     }
 
-    public static function getPages(): array
-    {
-        return [
-            'index'  => Pages\ListPreventivas::route('/'),
-            'create' => \Filament\Resources\Pages\CreateRecord::class,
-        ];
-    }
+public static function getPages(): array
+{
+    return [
+        'index'  => Pages\ListPreventivas::route('/'),
+        'create' => Pages\CreatePreventiva::route('/create'),
+        'edit'   => Pages\EditPreventiva::route('/{record}/edit'),
+    ];
+}
 }

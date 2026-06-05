@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 
 class SetorResource extends Resource
 {
@@ -23,7 +24,7 @@ class SetorResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasPermissionTo('setores.view') ?? false;
+        return Auth::user()?->hasPermissionTo('setores.view') ?? false;
     }
 
     public static function form(Form $form): Form
@@ -118,7 +119,8 @@ class SetorResource extends Resource
                                 ->danger()
                                 ->title('Não é possível excluir um setor com máquinas cadastradas.')
                                 ->send();
-                            $this->halt();
+
+                            return false;
                         }
                     }),
             ]);
@@ -127,14 +129,14 @@ class SetorResource extends Resource
     public static function getRelationManagers(): array
     {
         return [
-            MaquinasRelationManager::class,
+            // MaquinasRelationManager::class,
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListSetores::route('/'),
+            'index'  => Pages\ListSetors::route('/'),
             'create' => Pages\CreateSetor::route('/create'),
             'edit'   => Pages\EditSetor::route('/{record}/edit'),
         ];

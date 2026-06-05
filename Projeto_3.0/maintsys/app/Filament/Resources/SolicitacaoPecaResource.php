@@ -12,6 +12,7 @@ use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 
 class SolicitacaoPecaResource extends Resource
 {
@@ -24,7 +25,7 @@ class SolicitacaoPecaResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasPermissionTo('solicitacoes_pecas.view') ?? false;
+        return Auth::user()?->hasPermissionTo('solicitacoes_pecas.view') ?? false;
     }
 
     public static function table(Table $table): Table
@@ -91,7 +92,7 @@ class SolicitacaoPecaResource extends Resource
                             app(\App\Services\OcorrenciaService::class)->transicionarStatus(
                                 $record->inspecao->ocorrencia,
                                 \App\Enums\StatusOcorrencia::EmCorretiva,
-                                auth()->user()
+                                Auth::user()
                             );
                         }
                         \Filament\Notifications\Notification::make()
@@ -125,8 +126,8 @@ class SolicitacaoPecaResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListSolicitacoes::route('/'),
-            'view'  => Pages\ViewSolicitacao::route('/{record}'),
+            'index' => Pages\ListSolicitacaoPecas::route('/'),
+            'view'  => Pages\ViewSolicitacaoPeca::route('/{record}'),
         ];
     }
 }
