@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Tables;
 
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 
-class FalhasPorMaquinaTableWidget extends BaseWidget
+class CustosPorMaquinaTableWidget extends BaseWidget
 {
     public function table(Table $table): Table
     {

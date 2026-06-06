@@ -10,6 +10,7 @@ use App\Models\Setor;
 use Carbon\Carbon;
 use Filament\Pages\Page;
 use Livewire\Attributes\Computed;
+use Illuminate\Support\Facades\Auth;
 
 class RelatorioManutencao extends Page
 {
@@ -28,7 +29,7 @@ class RelatorioManutencao extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasPermissionTo('indicadores.view') ?? false;
+        return Auth::user()?->hasPermissionTo('indicadores.view') ?? false;
     }
 
     public function mount(): void

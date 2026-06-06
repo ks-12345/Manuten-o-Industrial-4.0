@@ -5,6 +5,7 @@ namespace App\Filament\Widgets\Charts;
 use App\Models\Corretiva;
 use App\Models\Preventiva;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Facades\Auth;
 
 class CustosMensaisChart extends ChartWidget
 {
@@ -102,6 +103,6 @@ class CustosMensaisChart extends ChartWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasPermissionTo('indicadores.view') ?? false;
+        return Auth::user()?->hasPermissionTo('indicadores.view') ?? false;
     }
 }

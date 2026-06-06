@@ -5,6 +5,7 @@ namespace App\Filament\Widgets\Kpi;
 use App\Services\IndicadorService;
 use Filament\Widgets\Widget;
 use Livewire\Attributes\Computed;
+use Illuminate\Support\Facades\Auth;
 
 class MtbfMttrWidget extends Widget
 {
@@ -57,6 +58,6 @@ class MtbfMttrWidget extends Widget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasPermissionTo('indicadores.view') ?? false;
+        return Auth::user()?->hasPermissionTo('indicadores.view') ?? false;
     }
 }

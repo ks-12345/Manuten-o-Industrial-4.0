@@ -17,6 +17,7 @@ use App\Filament\Widgets\StatsAdminWidget;
 use App\Filament\Widgets\StatsProfessorWidget;
 use App\Filament\Widgets\StatsTecnicoWidget;
 use Filament\Pages\Dashboard as BaseDashboard;
+use Illuminate\Support\Facades\Auth;
 
 class Dashboard extends BaseDashboard
 {
@@ -25,7 +26,7 @@ class Dashboard extends BaseDashboard
 
     public function getWidgets(): array
     {
-        $user   = auth()->user();
+        $user   = Auth::user();
         $perfil = session('perfil_ativo', $user->roles->first()?->name);
 
         if ($user->hasRole('admin')) {

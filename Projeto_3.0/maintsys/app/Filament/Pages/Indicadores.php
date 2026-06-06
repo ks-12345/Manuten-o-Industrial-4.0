@@ -12,6 +12,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Livewire\Attributes\Computed;
+use Illuminate\Support\Facades\Auth;
 
 class Indicadores extends Page implements HasForms
 {
@@ -33,7 +34,7 @@ class Indicadores extends Page implements HasForms
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasPermissionTo('indicadores.view') ?? false;
+        return Auth::user()?->hasPermissionTo('indicadores.view') ?? false;
     }
 
     public function mount(): void

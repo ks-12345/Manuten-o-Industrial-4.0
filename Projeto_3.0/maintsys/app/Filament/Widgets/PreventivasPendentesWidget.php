@@ -6,6 +6,7 @@ use App\Models\Preventiva;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Illuminate\Support\Facades\Auth;
 
 class PreventivasPendentesWidget extends BaseWidget
 {
@@ -15,7 +16,7 @@ class PreventivasPendentesWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasPermissionTo('preventivas.view') ?? false;
+        return Auth::user()?->hasPermissionTo('preventivas.view') ?? false;
     }
 
     public function table(Table $table): Table

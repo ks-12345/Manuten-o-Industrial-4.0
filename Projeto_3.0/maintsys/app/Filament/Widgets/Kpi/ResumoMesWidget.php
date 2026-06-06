@@ -8,10 +8,11 @@ use App\Models\Ocorrencia;
 use App\Models\Preventiva;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\Auth;
 
 class ResumoMesWidget extends BaseWidget
 {
-    protected static ?string $heading = 'Resumo do Mês Atual';
+    protected ?string $heading = 'Resumo do Mês Atual';
     protected static ?int    $sort    = 1;
 
     protected function getStats(): array
@@ -74,6 +75,6 @@ class ResumoMesWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasRole('admin') ?? false;
+        return Auth::user()?->hasRole('admin') ?? false;
     }
 }

@@ -10,9 +10,19 @@ use App\Services\MapaMaquinasService;
 use App\Services\OcorrenciaService;
 use App\Services\PreventivaService;
 use Illuminate\Support\ServiceProvider;
+use App\Models\Ocorrencia;
+use App\Models\Inspecao;
+use App\Models\Preventiva;
+use App\Observers\OcorrenciaObserver;
+use App\Observers\InspecaoObserver;
+use App\Observers\PreventivaObserver;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 
 class AppServiceProvider extends ServiceProvider
 {
+    
     public function register(): void
     {
         $this->app->singleton(HistoricoService::class);
@@ -41,6 +51,16 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Observers registrados aqui (ver Fase 1)
+        
+        Ocorrencia::observe(OcorrenciaObserver::class);
+        Inspecao::observe(InspecaoObserver::class);
+        Preventiva::observe(PreventivaObserver::class);
+
+        DB::listen(function ($query) {
+        if ($query->time > 100) {
+            Log::info("SQL {$query->time}ms: {$query->sql}");
+        }
+    });
+    
     }
 }

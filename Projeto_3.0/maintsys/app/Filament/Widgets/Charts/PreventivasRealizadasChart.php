@@ -4,6 +4,7 @@ namespace App\Filament\Widgets\Charts;
 
 use App\Models\Preventiva;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Facades\Auth;
 
 class PreventivasRealizadasChart extends ChartWidget
 {
@@ -77,6 +78,6 @@ class PreventivasRealizadasChart extends ChartWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasPermissionTo('dashboard.view') ?? false;
+        return Auth::user()?->hasPermissionTo('dashboard.view') ?? false;
     }
 }

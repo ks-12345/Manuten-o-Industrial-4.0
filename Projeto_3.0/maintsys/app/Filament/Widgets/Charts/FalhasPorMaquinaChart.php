@@ -4,6 +4,7 @@ namespace App\Filament\Widgets\Charts;
 
 use App\Models\Ocorrencia;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Facades\Auth;
 
 class FalhasPorMaquinaChart extends ChartWidget
 {
@@ -61,6 +62,6 @@ class FalhasPorMaquinaChart extends ChartWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasPermissionTo('indicadores.view') ?? false;
+        return Auth::user()?->hasPermissionTo('indicadores.view') ?? false;
     }
 }

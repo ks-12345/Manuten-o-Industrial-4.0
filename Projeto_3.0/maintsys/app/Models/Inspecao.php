@@ -13,6 +13,8 @@ class Inspecao extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = 'inspecoes';
+    
     protected $fillable = [
         'ocorrencia_id',
         'tecnico_id',

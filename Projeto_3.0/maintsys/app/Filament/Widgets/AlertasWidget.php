@@ -8,6 +8,7 @@ use App\Models\Ocorrencia;
 use App\Models\Preventiva;
 use App\Models\SolicitacaoPeca;
 use Filament\Widgets\Widget;
+use Illuminate\Support\Facades\Auth;
 
 class AlertasWidget extends Widget
 {
@@ -18,6 +19,12 @@ class AlertasWidget extends Widget
 
     public function getAlertas(): array
     {
+
+    return Cache::remember(
+        'dashboard_alertas',
+        now()->addMinutes(5),
+        function () {
+
         $alertas = [];
 
         // Máquinas quebradas
@@ -76,10 +83,11 @@ class AlertasWidget extends Widget
         }
 
         return $alertas;
+    });
     }
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasRole('admin') || auth()->user()?->hasRole('tecnico');
+        return Auth::user()?->hasRole('admin') || Auth::user()?->hasRole('tecnico');
     }
 }

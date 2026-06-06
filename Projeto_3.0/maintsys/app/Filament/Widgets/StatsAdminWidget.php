@@ -10,6 +10,7 @@ use App\Models\Ocorrencia;
 use App\Models\Preventiva;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\Auth;
 
 class StatsAdminWidget extends BaseWidget
 {
@@ -58,6 +59,6 @@ class StatsAdminWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasRole('admin') ?? false;
+        return Auth::user()?->hasRole('admin') ?? false;
     }
 }

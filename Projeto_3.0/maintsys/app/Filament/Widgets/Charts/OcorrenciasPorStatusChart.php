@@ -5,6 +5,7 @@ namespace App\Filament\Widgets\Charts;
 use App\Enums\StatusOcorrencia;
 use App\Models\Ocorrencia;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Facades\Auth;
 
 class OcorrenciasPorStatusChart extends ChartWidget
 {
@@ -60,6 +61,6 @@ class OcorrenciasPorStatusChart extends ChartWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasPermissionTo('dashboard.view') ?? false;
+        return Auth::user()?->hasPermissionTo('dashboard.view') ?? false;
     }
 }

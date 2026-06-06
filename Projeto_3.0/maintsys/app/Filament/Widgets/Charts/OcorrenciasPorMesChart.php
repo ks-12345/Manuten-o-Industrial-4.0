@@ -7,6 +7,7 @@ use App\Models\Ocorrencia;
 use App\Models\Preventiva;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class OcorrenciasPorMesChart extends ChartWidget
 {
@@ -104,6 +105,6 @@ class OcorrenciasPorMesChart extends ChartWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasPermissionTo('dashboard.view') ?? false;
+        return Auth::user()?->hasPermissionTo('dashboard.view') ?? false;
     }
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Models\Ocorrencia;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\Auth;
 
 class StatsProfessorWidget extends BaseWidget
 {
@@ -12,7 +13,7 @@ class StatsProfessorWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        $userId = auth()->id();
+        $userId = Auth::id();
 
         return [
             Stat::make('Minhas Ocorrências', Ocorrencia::where('professor_id', $userId)->count())
@@ -41,7 +42,7 @@ class StatsProfessorWidget extends BaseWidget
 
     public static function canView(): bool
     {
-        $user = auth()->user();
+        $user = Auth::user();
         return ($user?->hasRole('professor') && !$user->hasRole('admin'))
             || session('perfil_ativo') === 'professor';
     }

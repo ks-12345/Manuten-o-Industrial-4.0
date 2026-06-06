@@ -7,6 +7,7 @@ use App\Models\Ocorrencia;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Illuminate\Support\Facades\Auth;
 
 class OcorrenciasRecentesWidget extends BaseWidget
 {
@@ -16,7 +17,7 @@ class OcorrenciasRecentesWidget extends BaseWidget
 
     public function table(Table $table): Table
     {
-        $user  = auth()->user();
+        $user  = Auth::user();
         $query = Ocorrencia::with(['maquina', 'professor', 'tecnico'])
             ->whereNotIn('status', ['finalizada', 'cancelada'])
             ->latest();

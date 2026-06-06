@@ -42,7 +42,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('painel')
-            // ->login(Login::class)
+            ->login(Login::class)
             ->colors([
                 'primary' => Color::Blue,
                 'danger'  => Color::Rose,
@@ -81,15 +81,20 @@ class AdminPanelProvider extends PanelProvider
             ])
 // Adicionar às pages:
 ->pages([
+    MapaMaquinas::class,
     \App\Filament\Pages\MapaMaquinas::class,
     \App\Filament\Pages\Indicadores::class,
     \App\Filament\Pages\RelatorioManutencao::class,
     \App\Filament\Pages\Dashboard::class,
 ])
 
-// Adicionar aos widgets:
+
 ->widgets([
-    // Existentes da Fase 3...
+    StatsAdminWidget::class,
+    StatsProfessorWidget::class,
+    StatsTecnicoWidget::class,
+    OcorrenciasRecentesWidget::class,
+    PreventivasPendentesWidget::class,
     \App\Filament\Widgets\Kpi\MtbfMttrWidget::class,
     \App\Filament\Widgets\Kpi\ResumoMesWidget::class,
     \App\Filament\Widgets\AlertasWidget::class,

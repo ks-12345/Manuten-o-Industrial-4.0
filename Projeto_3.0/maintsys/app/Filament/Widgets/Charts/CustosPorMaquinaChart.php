@@ -4,6 +4,7 @@ namespace App\Filament\Widgets\Charts;
 
 use App\Services\IndicadorService;
 use Filament\Widgets\ChartWidget;
+use Illuminate\Support\Facades\Auth;
 
 class CustosPorMaquinaChart extends ChartWidget
 {
@@ -62,6 +63,6 @@ class CustosPorMaquinaChart extends ChartWidget
 
     public static function canView(): bool
     {
-        return auth()->user()?->hasPermissionTo('indicadores.view') ?? false;
+        return Auth::user()?->hasPermissionTo('indicadores.view') ?? false;
     }
 }
