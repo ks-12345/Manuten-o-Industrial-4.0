@@ -12,6 +12,7 @@ use App\Models\SolicitacaoPeca;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 
 class InspecaoService
 {
@@ -136,10 +137,14 @@ class InspecaoService
                 $inspecao->ocorrencia,
                 Historico::ACAO_SOLICITACAO_PECA,
                 "Peça solicitada: {$solicitacao->nome_peca} (Qtd: {$solicitacao->quantidade})",
-                auth()->user()
+                Auth::user()
             );
 
             return $solicitacao;
         });
+        
     }
+
+
+    
 }

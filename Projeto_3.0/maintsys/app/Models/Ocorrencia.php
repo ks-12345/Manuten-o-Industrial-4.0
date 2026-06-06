@@ -38,23 +38,30 @@ class Ocorrencia extends Model
 
     // ──────────────────────── Booted ────────────────────────
 
-    protected static function booted(): void
-    {
-        static::creating(function (Ocorrencia $ocorrencia) {
-            $ocorrencia->codigo = static::gerarCodigo();
-        });
-    }
+protected static function booted(): void
+{
+    static::creating(function (Ocorrencia $ocorrencia) {
+
+        $ultimoId = static::withTrashed()->max('id') ?? 0;
+
+        $ocorrencia->codigo = sprintf(
+            'OC-%s-%06d',
+            now()->year,
+            $ultimoId + 1
+        );
+    });
+}
 
     // ──────────────────────── Código ─────────────────────────
 
-    public static function gerarCodigo(): string
-    {
-        $ano = now()->format('Y');
-        $ultimo = static::whereYear('created_at', $ano)
-                        ->lockForUpdate()
-                        ->count();
-        return sprintf('OC-%s-%04d', $ano, $ultimo + 1);
-    }
+    // public static function gerarCodigo(): string
+    // {
+    //     $ano = now()->format('Y');
+    //     $ultimo = static::whereYear('created_at', $ano)
+    //                    // ->lockForUpdate()
+    //                     ->count();
+    //     return sprintf('OC-%s-%04d', $ano, $ultimo + 1);
+    // }
 
     // ──────────────────────── Scopes ────────────────────────
 

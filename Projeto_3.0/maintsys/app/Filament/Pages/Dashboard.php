@@ -39,7 +39,7 @@ class Dashboard extends BaseDashboard
                 FalhasPorMaquinaChart::class,
                 FalhasPorSetorChart::class,
                 CustosMensaisChart::class,
-                MtbfMttrWidget::class,
+                // MtbfMttrWidget::class,
                 PreventivasRealizadasChart::class,
                 OcorrenciasRecentesWidget::class,
                 PreventivasPendentesWidget::class,

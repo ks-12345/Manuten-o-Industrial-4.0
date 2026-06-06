@@ -51,8 +51,8 @@ class AdminPanelProvider extends PanelProvider
                 'info'    => Color::Sky,
             ])
             ->brandName('MaintSys 4.0')
-            ->brandLogo(asset('images/logo.svg'))
-            ->favicon(asset('images/favicon.ico'))
+            ->brandLogo(asset('images/logo.png'))
+            ->favicon(asset('images/favicon.png'))
             ->darkMode(true)
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
@@ -95,7 +95,7 @@ class AdminPanelProvider extends PanelProvider
     StatsTecnicoWidget::class,
     OcorrenciasRecentesWidget::class,
     PreventivasPendentesWidget::class,
-    \App\Filament\Widgets\Kpi\MtbfMttrWidget::class,
+    // \App\Filament\Widgets\Kpi\MtbfMttrWidget::class,
     \App\Filament\Widgets\Kpi\ResumoMesWidget::class,
     \App\Filament\Widgets\AlertasWidget::class,
     \App\Filament\Widgets\Charts\OcorrenciasPorStatusChart::class,

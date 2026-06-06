@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InspecaoResource\Pages;
 use App\Models\Inspecao;
+use App\Models\Ocorrencia;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists;
@@ -44,6 +45,20 @@ class InspecaoResource extends Resource
     {
         return $form->schema([
             Forms\Components\Section::make()->schema([
+                Forms\Components\Select::make('ocorrencia_id')
+                    ->label('Ocorrencia')
+                    ->options(fn () => Ocorrencia::query()
+                        ->whereDoesntHave('inspecao')
+                        ->when(
+                            ! Auth::user()?->hasRole('admin'),
+                            fn (Builder $query) => $query->where('tecnico_id', Auth::id())
+                        )
+                        ->latest()
+                        ->pluck('codigo', 'id'))
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+
                 Forms\Components\Textarea::make('diagnostico')
                     ->label('Diagnóstico')
                     ->rows(4)

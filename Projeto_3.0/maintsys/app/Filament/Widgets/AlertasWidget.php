@@ -9,6 +9,7 @@ use App\Models\Preventiva;
 use App\Models\SolicitacaoPeca;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class AlertasWidget extends Widget
 {

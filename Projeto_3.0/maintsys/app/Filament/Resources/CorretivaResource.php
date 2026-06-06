@@ -121,13 +121,13 @@ class CorretivaResource extends Resource
                 Tables\Columns\TextColumn::make('maquina.nome')
                     ->label('Máquina')
                     ->searchable()
-                    ->description(fn($r) => $r->maquina?->setor?->nome),
+                    ->description(fn($record) => $record->maquina?->setor?->nome),
 
                 Tables\Columns\TextColumn::make('tipo')
                     ->label('Tipo')
                     ->badge()
-                    ->formatStateUsing(fn($s) => $s->getLabel())
-                    ->color(fn($s) => match($s) {
+                    ->formatStateUsing(fn($state) => $state->getLabel())
+                    ->color(fn($state) => match($state) {
                         TipoCorretiva::OrigemOcorrencia => 'warning',
                         TipoCorretiva::Direta           => 'info',
                     }),
@@ -138,8 +138,8 @@ class CorretivaResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->color(fn($s) => $s === 'finalizada' ? 'success' : 'warning')
-                    ->formatStateUsing(fn($s) => $s === 'finalizada' ? 'Finalizada' : 'Em Andamento'),
+                    ->color(fn($state) => $state === 'finalizada' ? 'success' : 'warning')
+                    ->formatStateUsing(fn($state) => $state === 'finalizada' ? 'Finalizada' : 'Em Andamento'),
 
                 Tables\Columns\TextColumn::make('inicio')
                     ->label('Iniciada em')
@@ -147,11 +147,11 @@ class CorretivaResource extends Resource
 
                 Tables\Columns\TextColumn::make('tempo_reparo')
                     ->label('Tempo')
-                    ->formatStateUsing(fn($s) => $s ? gmdate('H\h i\m', $s * 60) : '—'),
+                    ->formatStateUsing(fn($state) => $state ? gmdate('H\h i\m', $state * 60) : '—'),
 
                 Tables\Columns\TextColumn::make('custo_total')
                     ->label('Custo Total')
-                    ->getStateUsing(fn($r) => 'R$ ' . number_format($r->custoTotal(), 2, ',', '.')),
+                    ->getStateUsing(fn($record) => 'R$ ' . number_format($record->custoTotal(), 2, ',', '.')),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
@@ -166,11 +166,11 @@ class CorretivaResource extends Resource
                     ->label('Executar')
                     ->icon('heroicon-o-play')
                     ->color('primary')
-                    ->url(fn($r) => Pages\ExecutarCorretiva::getUrl(['record' => $r]))
-                    ->visible(fn($r) => !$r->estaFinalizada()),
+                    ->url(fn($record) => Pages\ExecutarCorretiva::getUrl(['record' => $record]))
+                    ->visible(fn($record) => !$record->estaFinalizada()),
 
                 Tables\Actions\EditAction::make()
-                    ->visible(fn($r) => Auth::user()->hasRole('admin')),
+                    ->visible(fn($record) => Auth::user()->hasRole('admin')),
             ]);
     }
 

@@ -11,6 +11,7 @@ use App\Models\Preventiva;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class StatsAdminWidget extends BaseWidget
 {
@@ -18,40 +19,53 @@ class StatsAdminWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        return [
-            Stat::make('Ocorrências Abertas', Ocorrencia::where('status', StatusOcorrencia::Aberta->value)->count())
-                ->description('Aguardando técnico')
-                ->descriptionIcon('heroicon-o-exclamation-triangle')
-                ->color('warning')
-                ->chart(Ocorrencia::where('status', StatusOcorrencia::Aberta->value)
+        $dados = Cache::remember('dashboard_stats_admin', now()->addMinutes(5), function () {
+            return [
+                'ocorrencias_abertas' => Ocorrencia::where('status', StatusOcorrencia::Aberta->value)->count(),
+                'ocorrencias_abertas_chart' => Ocorrencia::where('status', StatusOcorrencia::Aberta->value)
                     ->selectRaw('COUNT(*) as count')
                     ->groupByRaw('DATE(created_at)')
-                    ->pluck('count')->toArray()),
+                    ->pluck('count')
+                    ->toArray(),
+                'corretivas_em_andamento' => Corretiva::where('status', 'em_andamento')->count(),
+                'preventivas_atrasadas' => Preventiva::where('status', 'atrasada')
+                    ->orWhere(fn ($q) => $q->where('status', 'pendente')->where('data_prevista', '<', now()))
+                    ->count(),
+                'aguardando_orcamento' => Ocorrencia::where('status', StatusOcorrencia::AguardandoOrcamento->value)->count(),
+                'aguardando_peca' => Ocorrencia::where('status', StatusOcorrencia::AguardandoPeca->value)->count(),
+                'maquinas_quebradas' => Maquina::where('status', StatusMaquina::Quebrada->value)->count(),
+            ];
+        });
 
-            Stat::make('Em Corretiva', Corretiva::where('status', 'em_andamento')->count())
-                ->description('Manutenções em execução')
+        return [
+            Stat::make('Ocorrencias Abertas', $dados['ocorrencias_abertas'])
+                ->description('Aguardando tecnico')
+                ->descriptionIcon('heroicon-o-exclamation-triangle')
+                ->color('warning')
+                ->chart($dados['ocorrencias_abertas_chart']),
+
+            Stat::make('Em Corretiva', $dados['corretivas_em_andamento'])
+                ->description('Manutencoes em execucao')
                 ->descriptionIcon('heroicon-o-wrench-screwdriver')
                 ->color('info'),
 
-            Stat::make('Preventivas Atrasadas', Preventiva::where('status', 'atrasada')
-                ->orWhere(fn($q) => $q->where('status', 'pendente')->where('data_prevista', '<', now()))
-                ->count())
-                ->description('Necessitam atenção')
+            Stat::make('Preventivas Atrasadas', $dados['preventivas_atrasadas'])
+                ->description('Necessitam atencao')
                 ->descriptionIcon('heroicon-o-calendar-days')
                 ->color('danger'),
 
-            Stat::make('Aguard. Orçamento', Ocorrencia::where('status', StatusOcorrencia::AguardandoOrcamento->value)->count())
-                ->description('Peças sendo cotadas')
+            Stat::make('Aguard. Orcamento', $dados['aguardando_orcamento'])
+                ->description('Pecas sendo cotadas')
                 ->descriptionIcon('heroicon-o-currency-dollar')
                 ->color('orange'),
 
-            Stat::make('Aguardando Peça', Ocorrencia::where('status', StatusOcorrencia::AguardandoPeca->value)->count())
-                ->description('Peças encomendadas')
+            Stat::make('Aguardando Peca', $dados['aguardando_peca'])
+                ->description('Pecas encomendadas')
                 ->descriptionIcon('heroicon-o-cube')
                 ->color('purple'),
 
-            Stat::make('Máquinas Quebradas', Maquina::where('status', StatusMaquina::Quebrada->value)->count())
-                ->description('Fora de operação')
+            Stat::make('Maquinas Quebradas', $dados['maquinas_quebradas'])
+                ->description('Fora de operacao')
                 ->descriptionIcon('heroicon-o-x-circle')
                 ->color('danger'),
         ];

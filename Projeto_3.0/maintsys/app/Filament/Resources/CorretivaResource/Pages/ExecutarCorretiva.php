@@ -10,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Corretiva;
 
 class ExecutarCorretiva extends Page implements HasForms
 {
@@ -18,13 +19,13 @@ class ExecutarCorretiva extends Page implements HasForms
     protected static string $resource = CorretivaResource::class;
     protected static string $view     = 'filament.pages.executar-corretiva';
 
-    public Model $record;
+    public Corretiva $record;
     public string  $solucao       = '';
     public string  $resumo        = '';
     public float   $custoPecas    = 0;
     public float   $custoMaoObra  = 0;
 
-    public function mount(Model $record): void
+    public function mount(Corretiva $record): void
     {
         $this->record      = $record;
         $this->solucao     = $record->solucao     ?? '';

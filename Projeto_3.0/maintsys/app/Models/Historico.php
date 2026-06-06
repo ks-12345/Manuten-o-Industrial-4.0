@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 
 class Historico extends Model
 {
@@ -70,7 +71,7 @@ class Historico extends Model
         return static::create([
             'historiavel_type' => get_class($model),
             'historiavel_id'   => $model->getKey(),
-            'user_id'          => $user?->id ?? auth()->id(),
+            'user_id'          => $user?->id ?? Auth::id(),
             'acao'             => $acao,
             'descricao'        => $descricao,
             'dados_anteriores' => $dadosAnteriores,

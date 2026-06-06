@@ -24,6 +24,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Inspecao;
 
 class ExecutarInspecao extends Page implements HasForms
 {
@@ -32,7 +33,8 @@ class ExecutarInspecao extends Page implements HasForms
     protected static string  $resource = InspecaoResource::class;
     protected static string  $view     = 'filament.pages.executar-inspecao';
 
-    public Model $record;
+    // public Model $record;
+public Inspecao $record;
 
     // Dados do formulário
     public ?array $formData    = [];
@@ -45,7 +47,7 @@ class ExecutarInspecao extends Page implements HasForms
     public ?string $descricaoPeca  = null;
     public ?string $referenciaPeca = null;
 
-    public function mount(Model $record): void
+    public function mount(Inspecao $record): void
     {
         $this->record = $record;
     }
