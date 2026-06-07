@@ -17,6 +17,13 @@
             </div>
         </x-filament::section>
 
+        {{-- Checklist da Corretiva --}}
+        <x-checklist-executor 
+            :checklistModelo="$checklistCorretiva"
+            :respostasChecklist="$respostasChecklist"
+            :modalPerguntaId="$modalPerguntaId"
+            :mostrarModalNaoConforme="$mostrarModalNaoConforme" />
+
         <x-filament::section>
             <x-slot name="heading">📝 Execução</x-slot>
             <div class="space-y-4">

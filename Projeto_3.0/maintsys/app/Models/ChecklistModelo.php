@@ -20,17 +20,25 @@ class ChecklistModelo extends Model
         'descricao',
         'tipo',
         'maquina_id',
+        'tipo_maquina_id',
+        'template_padrao',
         'ativo',
     ];
 
     protected $casts = [
         'tipo'  => TipoChecklist::class,
+        'template_padrao' => 'boolean',
         'ativo' => 'boolean',
     ];
 
     public function maquina(): BelongsTo
     {
         return $this->belongsTo(Maquina::class);
+    }
+
+    public function tipoMaquina(): BelongsTo
+    {
+        return $this->belongsTo(TipoMaquina::class, 'tipo_maquina_id');
     }
 
     public function perguntas(): HasMany

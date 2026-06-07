@@ -1,81 +1,63 @@
 <?php
 
-namespace App\Filament\Resources\InspecaoResource\Pages;
+namespace App\Filament\Resources\PreventivaResource\Pages;
 
 use App\Enums\RespostaChecklist;
 use App\Enums\TipoChecklist;
-use App\Filament\Resources\InspecaoResource;
+use App\Filament\Resources\PreventivaResource;
 use App\Models\ChecklistModelo;
-use App\Models\ChecklistResposta;
-use App\Models\SolicitacaoPeca;
 use App\Services\ChecklistService;
-use App\Services\InspecaoService;
-use Filament\Actions\Action;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Radio;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
+use App\Services\PreventivaService;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Inspecao;
+use App\Models\Preventiva;
 
-class ExecutarInspecao extends Page implements HasForms
+class ExecutarPreventiva extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    protected static string  $resource = InspecaoResource::class;
-    protected static string  $view     = 'filament.pages.executar-inspecao';
+    protected static string $resource = PreventivaResource::class;
+    protected static string $view     = 'filament.pages.executar-preventiva';
 
-    // public Model $record;
-public Inspecao $record;
-
-    // Dados do formulário
-    public ?array $formData    = [];
-    public bool   $finalizando = false;
-    public bool   $necessiPeca = false;
-
-    // Dados da solicitação de peça
-    public ?string $nomePeca   = null;
-    public int     $quantidade = 1;
-    public ?string $descricaoPeca  = null;
-    public ?string $referenciaPeca = null;
+    public Preventiva $record;
+    public string  $observacoes   = '';
+    public int     $tempoExecucao = 0;
+    public float   $custo         = 0;
 
     // Checklists
-    public ?ChecklistModelo $checklistInspecao = null;
+    public ?ChecklistModelo $checklistPreventiva = null;
     public array $respostasChecklist = [];
     public ?string $modalPerguntaId = null;
     public bool $mostrarModalNaoConforme = false;
 
-    public function mount(Inspecao $record): void
+    public function mount(Preventiva $record): void
     {
-        $this->record = $record;
+        $this->record           = $record;
+        $this->observacoes      = $record->observacoes ?? '';
+        $this->tempoExecucao    = (int) ($record->tempo_execucao ?? 0);
+        $this->custo            = (float) ($record->custo ?? 0);
+        
         $this->carregarChecklist();
     }
 
     private function carregarChecklist(): void
     {
-        $maquina = $this->record->ocorrencia?->maquina;
+        $maquina = $this->record->maquina;
         if (!$maquina) return;
 
         $service = app(ChecklistService::class);
-        $this->checklistInspecao = $service->modeloParaMaquina($maquina, TipoChecklist::Inspecao);
+        $this->checklistPreventiva = $service->modeloParaMaquina($maquina, TipoChecklist::Preventiva);
 
-        if ($this->checklistInspecao) {
+        if ($this->checklistPreventiva) {
             $respostasExistentes = $this->record->checklistRespostas()
                 ->with('pergunta')
                 ->get()
                 ->keyBy('checklist_pergunta_id');
 
-            foreach ($this->checklistInspecao->perguntas as $pergunta) {
+            foreach ($this->checklistPreventiva->perguntas as $pergunta) {
                 $resposta = $respostasExistentes->get($pergunta->id);
                 $this->respostasChecklist[$pergunta->id] = [
                     'resposta' => $resposta?->resposta_enum?->value ?? null,
@@ -111,19 +93,45 @@ public Inspecao $record;
         $this->modalPerguntaId = null;
     }
 
-    public function finalizarInspecao(array $data): void
+    public function salvarRascunho(): void
     {
-        if ($this->checklistInspecao) {
+        $this->record->update([
+            'observacoes'     => $this->observacoes,
+            'tempo_execucao'  => $this->tempoExecucao,
+            'custo'           => $this->custo,
+        ]);
+        Notification::make()->info()->title('Rascunho salvo.')->send();
+    }
+
+    public function finalizar(): void
+    {
+        if ($this->checklistPreventiva) {
             $this->validarRespostasChecklist();
         }
 
-        $this->finalizando = true;
-        $this->necessiPeca = $data['necessita_peca'];
+        if ($this->checklistPreventiva) {
+            app(ChecklistService::class)->salvarRespostas(
+                $this->record,
+                $this->checklistPreventiva,
+                $this->respostasChecklist
+            );
+        }
+
+        app(PreventivaService::class)->finalizar(
+            $this->record,
+            Auth::user(),
+            $this->observacoes ?? null,
+            $this->custo,
+            $this->tempoExecucao > 0 ? $this->tempoExecucao : null
+        );
+
+        Notification::make()->success()->title('Preventiva finalizada com sucesso!')->send();
+        $this->redirect(PreventivaResource::getUrl('index'));
     }
 
     private function validarRespostasChecklist(): void
     {
-        foreach ($this->checklistInspecao->perguntas as $pergunta) {
+        foreach ($this->checklistPreventiva->perguntas as $pergunta) {
             $resposta = $this->respostasChecklist[$pergunta->id]['resposta'] ?? null;
 
             if (!$resposta) {
@@ -144,7 +152,7 @@ public Inspecao $record;
                     Notification::make()
                         ->warning()
                         ->title('Não Conformidade Incompleta')
-                        ->body("Pregunta '{$pergunta->pergunta}' requer evidência e descrição.")
+                        ->body("Pergunta '{$pergunta->pergunta}' requer evidência e descrição.")
                         ->send();
 
                     throw new \Exception('Não conformidade exige evidência e descrição.');
@@ -153,42 +161,8 @@ public Inspecao $record;
         }
     }
 
-    public function salvarFinalizar(): void
-    {
-        if ($this->checklistInspecao) {
-            app(ChecklistService::class)->salvarRespostas(
-                $this->record,
-                $this->checklistInspecao,
-                $this->respostasChecklist
-            );
-        }
-
-        $service = app(InspecaoService::class);
-
-        $inspecao = $service->finalizar(
-            $this->record,
-            $this->formData['diagnostico']  ?? '',
-            $this->necessiPeca,
-            Auth::user(),
-            $this->formData['observacoes'] ?? null
-        );
-
-        if ($this->necessiPeca && $this->nomePeca) {
-            $service->solicitarPeca($inspecao, [
-                'nome_peca'  => $this->nomePeca,
-                'quantidade' => $this->quantidade,
-                'descricao'  => $this->descricaoPeca,
-                'referencia' => $this->referenciaPeca,
-            ]);
-        }
-
-        Notification::make()->success()->title('Inspeção finalizada com sucesso!')->send();
-
-        $this->redirect(InspecaoResource::getUrl('index'));
-    }
-
     public function getTitle(): string
     {
-        return "Inspeção — {$this->record->ocorrencia?->codigo}";
+        return "Executar Preventiva — {$this->record->maquina?->nome}";
     }
 }

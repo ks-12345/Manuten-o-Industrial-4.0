@@ -20,6 +20,13 @@
         </x-filament::section>
 
         @if (!$finalizando)
+            {{-- Checklist da Inspeção --}}
+            <x-checklist-executor 
+                :checklistModelo="$checklistInspecao"
+                :respostasChecklist="$respostasChecklist"
+                :modalPerguntaId="$modalPerguntaId"
+                :mostrarModalNaoConforme="$mostrarModalNaoConforme" />
+
             {{-- Formulário de diagnóstico --}}
             <x-filament::section>
                 <x-slot name="heading">🔍 Diagnóstico</x-slot>

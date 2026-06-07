@@ -204,6 +204,7 @@ public static function getPages(): array
         'index'  => Pages\ListPreventivas::route('/'),
         'create' => Pages\CreatePreventiva::route('/create'),
         'edit'   => Pages\EditPreventiva::route('/{record}/edit'),
+        'executar' => Pages\ExecutarPreventiva::route('/{record}/executar'),
     ];
 }
 }

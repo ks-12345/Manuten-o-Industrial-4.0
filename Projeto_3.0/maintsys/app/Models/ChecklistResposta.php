@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RespostaChecklist;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,8 +19,15 @@ class ChecklistResposta extends Model
         'checklistable_type',
         'checklistable_id',
         'resposta',
+        'resposta_enum',
         'observacao',
         'foto',
+        'evidencia',
+        'descricao',
+    ];
+
+    protected $casts = [
+        'resposta_enum' => RespostaChecklist::class,
     ];
 
     // ──────────────────────── Relationships ──────────────────
@@ -39,8 +47,15 @@ class ChecklistResposta extends Model
 
     public function getFotoUrlAttribute(): ?string
     {
-        if (!$this->foto) return null;
-        return Storage::disk('s3')->url($this->foto);
+        $path = $this->foto ?? $this->evidencia;
+        if (!$path) return null;
+        return Storage::disk('s3')->url($path);
+    }
+
+    public function getEvidenciaUrlAttribute(): ?string
+    {
+        if (!$this->evidencia) return null;
+        return Storage::disk('s3')->url($this->evidencia);
     }
 
     public function respostaFormatada(): string

@@ -8,6 +8,7 @@ use App\Filament\Resources\ChecklistModeloResource\Pages;
 use App\Filament\Resources\ChecklistModeloResource\RelationManagers\PerguntasRelationManager;
 use App\Models\ChecklistModelo;
 use App\Models\Maquina;
+use App\Models\TipoMaquina;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -50,10 +51,37 @@ class ChecklistModeloResource extends Resource
                     ->nullable()
                     ->helperText('Deixe em branco para checklist global.'),
 
+                Forms\Components\Select::make('tipo_maquina_id')
+                    ->label('Tipo de Máquina / Template')
+                    ->options(TipoMaquina::ativos()->pluck('nome', 'id'))
+                    ->searchable()
+                    ->preload()
+                    ->nullable()
+                    ->helperText('Use para templates padrão por CNC, torno, injetora etc.'),
+
                 Forms\Components\Toggle::make('ativo')
                     ->label('Ativo')
                     ->default(true)
                     ->inline(false),
+
+                Forms\Components\Toggle::make('template_padrao')
+                    ->label('Template padrão')
+                    ->default(false)
+                    ->inline(false),
+
+                Forms\Components\FileUpload::make('arquivo_importacao')
+                    ->label('Importar perguntas (PDF, Excel, CSV ou TXT)')
+                    ->acceptedFileTypes([
+                        'application/pdf',
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        'application/vnd.ms-excel',
+                        'text/csv',
+                        'text/plain',
+                    ])
+                    ->directory('checklists/importacoes')
+                    ->disk('local')
+                    ->dehydrated(false)
+                    ->columnSpanFull(),
 
                 Forms\Components\Textarea::make('descricao')
                     ->label('Descrição')
@@ -74,12 +102,22 @@ class ChecklistModeloResource extends Resource
                 Tables\Columns\TextColumn::make('tipo')
                     ->label('Tipo')
                     ->badge()
-                    ->formatStateUsing(fn($s) => $s->getLabel())
+                    ->formatStateUsing(fn($state) => $state->getLabel())
                     ->color('primary'),
 
                 Tables\Columns\TextColumn::make('maquina.nome')
                     ->label('Máquina')
                     ->placeholder('Global'),
+
+                Tables\Columns\TextColumn::make('tipoMaquina.nome')
+                    ->label('Tipo Máquina')
+                    ->placeholder('Geral')
+                    ->badge()
+                    ->color('info'),
+
+                Tables\Columns\IconColumn::make('template_padrao')
+                    ->label('Template')
+                    ->boolean(),
 
                 Tables\Columns\TextColumn::make('perguntas_count')
                     ->label('Perguntas')

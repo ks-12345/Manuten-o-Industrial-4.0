@@ -17,6 +17,7 @@ class Maquina extends Model
 
     protected $fillable = [
         'setor_id',
+        'tipo_maquina_id',
         'nome',
         'patrimonio',
         'fabricante',
@@ -67,6 +68,16 @@ class Maquina extends Model
     public function setor(): BelongsTo
     {
         return $this->belongsTo(Setor::class);
+    }
+
+    public function tipoMaquina(): BelongsTo
+    {
+        return $this->belongsTo(TipoMaquina::class, 'tipo_maquina_id');
+    }
+
+    public function checklistModelos(): HasMany
+    {
+        return $this->hasMany(ChecklistModelo::class, 'maquina_id');
     }
 
     public function ocorrencias(): HasMany

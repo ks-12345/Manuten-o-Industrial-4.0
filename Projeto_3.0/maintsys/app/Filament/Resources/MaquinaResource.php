@@ -5,10 +5,12 @@ namespace App\Filament\Resources;
 use App\Enums\PeriodicidadePreventiva;
 use App\Enums\StatusMaquina;
 use App\Filament\Resources\MaquinaResource\Pages;
+use App\Filament\Resources\MaquinaResource\RelationManagers\ChecklistModeloRelationManager;
 use App\Filament\Resources\MaquinaResource\RelationManagers\OcorrenciasRelationManager;
 use App\Filament\Resources\MaquinaResource\RelationManagers\PreventivasRelationManager;
 use App\Models\Maquina;
 use App\Models\Setor;
+use App\Models\TipoMaquina;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists;
@@ -45,11 +47,18 @@ class MaquinaResource extends Resource
                         ->searchable()
                         ->required(),
 
+                    Forms\Components\Select::make('tipo_maquina_id')
+                        ->label('Tipo de Máquina')
+                        ->options(TipoMaquina::ativos()->pluck('nome', 'id'))
+                        ->searchable()
+                        ->preload()
+                        ->nullable(),
+
                     Forms\Components\TextInput::make('nome')
                         ->label('Nome da Máquina')
                         ->required()
                         ->maxLength(150)
-                        ->columnSpan(2),
+                        ->columnSpan(1),
 
                     Forms\Components\TextInput::make('patrimonio')
                         ->label('Patrimônio')
@@ -78,6 +87,33 @@ class MaquinaResource extends Resource
                         ->label('Potência')
                         ->maxLength(20)
                         ->placeholder('15kW'),
+                ]),
+
+            Forms\Components\Section::make('Checklists da Máquina')
+                ->icon('heroicon-o-clipboard-document-check')
+                ->description('Opcional. Se corretiva ou preventiva forem selecionadas, a inspeção será criada como base obrigatória.')
+                ->columns(3)
+                ->visibleOn('create')
+                ->schema([
+                    Forms\Components\Toggle::make('criar_checklist_inspecao')
+                        ->label('Inspeção')
+                        ->default(false)
+                        ->dehydrated(false)
+                        ->live(),
+
+                    Forms\Components\Toggle::make('criar_checklist_corretiva')
+                        ->label('Corretiva')
+                        ->default(false)
+                        ->dehydrated(false)
+                        ->live()
+                        ->afterStateUpdated(fn (Forms\Set $set, bool $state) => $state ? $set('criar_checklist_inspecao', true) : null),
+
+                    Forms\Components\Toggle::make('criar_checklist_preventiva')
+                        ->label('Preventiva')
+                        ->default(false)
+                        ->dehydrated(false)
+                        ->live()
+                        ->afterStateUpdated(fn (Forms\Set $set, bool $state) => $state ? $set('criar_checklist_inspecao', true) : null),
                 ]),
 
             Forms\Components\Section::make('Status e Manutenção')
@@ -156,6 +192,13 @@ class MaquinaResource extends Resource
                     ->badge()
                     ->color('gray')
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('tipoMaquina.nome')
+                    ->label('Tipo')
+                    ->placeholder('—')
+                    ->badge()
+                    ->color('info')
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('fabricante')
                     ->label('Fabricante')
@@ -257,6 +300,7 @@ class MaquinaResource extends Resource
         return [
             OcorrenciasRelationManager::class,
             PreventivasRelationManager::class,
+            ChecklistModeloRelationManager::class,
         ];
     }
 
