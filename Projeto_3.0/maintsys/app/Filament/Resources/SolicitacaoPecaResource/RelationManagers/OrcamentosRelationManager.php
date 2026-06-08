@@ -91,21 +91,24 @@ class OrcamentosRelationManager extends RelationManager
                     ->dateTime('d/m/Y H:i')
                     ->placeholder('—'),
             ])
-            ->headerActions([
-                Tables\Actions\CreateAction::make()
-                    ->label('Adicionar Orçamento')
-                    ->before(function () {
-                        if ($this->ownerRecord->totalOrcamentos() >= 3) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Máximo de 3 orçamentos por solicitação.')
-                                ->send();
-                            $this->halt();
-                        }
-                    }),
-            ])
+->headerActions([
+    Tables\Actions\CreateAction::make()
+        ->label('Adicionar Orçamento')
+        ->visible(fn () => $this->ownerRecord->totalOrcamentos() < 3)
+        ->before(function () {
+            if ($this->ownerRecord->totalOrcamentos() >= 3) {
+                Notification::make()
+                    ->danger()
+                    ->title('Máximo de 3 orçamentos por solicitação.')
+                    ->send();
+
+                $this->halt();
+            }
+        }),
+])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->visible(fn ($record) => ! $record->aprovado),
 
                 Tables\Actions\Action::make('aprovar')
                     ->label('Aprovar')
@@ -113,8 +116,11 @@ class OrcamentosRelationManager extends RelationManager
                     ->color('success')
                     ->requiresConfirmation()
                     ->modalDescription('Este orçamento será aprovado e os demais serão reprovados automaticamente.')
-                    ->visible(fn($record) => !$record->aprovado
-                        && Auth::user()->hasPermissionTo('orcamentos.aprovar'))
+                    ->visible(
+                        fn ($record) =>! $record->aprovado
+                        && $record->solicitacaoPeca->status !== StatusSolicitacaoPeca::PecaRecebida
+                        && Auth::user()->hasPermissionTo('orcamentos.aprovar')
+)
                     ->action(function (Orcamento $record) {
                         $record->aprovar(Auth::user());
 

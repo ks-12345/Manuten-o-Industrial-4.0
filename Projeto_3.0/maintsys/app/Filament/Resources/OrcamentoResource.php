@@ -17,15 +17,30 @@ class OrcamentoResource extends Resource
 {
     protected static ?string $model = Orcamento::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    // protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                //
-            ]);
-    }
+public static function form(Form $form): Form
+{
+    return $form
+        ->schema([
+            Forms\Components\Select::make('solicitacao_peca_id')
+                ->relationship('solicitacaoPeca', 'id')
+                ->required(),
+
+            Forms\Components\TextInput::make('empresa')
+                ->required(),
+
+            Forms\Components\TextInput::make('contato'),
+
+            Forms\Components\TextInput::make('valor')
+                ->numeric()
+                ->required(),
+
+            Forms\Components\DatePicker::make('prazo_entrega'),
+
+            Forms\Components\Textarea::make('observacoes'),
+        ]);
+}
 
     public static function table(Table $table): Table
     {

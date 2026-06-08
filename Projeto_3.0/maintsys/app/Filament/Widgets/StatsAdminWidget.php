@@ -32,7 +32,6 @@ class StatsAdminWidget extends BaseWidget
                     ->orWhere(fn ($q) => $q->where('status', 'pendente')->where('data_prevista', '<', now()))
                     ->count(),
                 'aguardando_orcamento' => Ocorrencia::where('status', StatusOcorrencia::AguardandoOrcamento->value)->count(),
-                'aguardando_peca' => Ocorrencia::where('status', StatusOcorrencia::AguardandoPeca->value)->count(),
                 'maquinas_quebradas' => Maquina::where('status', StatusMaquina::Quebrada->value)->count(),
             ];
         });
@@ -58,11 +57,6 @@ class StatsAdminWidget extends BaseWidget
                 ->description('Pecas sendo cotadas')
                 ->descriptionIcon('heroicon-o-currency-dollar')
                 ->color('orange'),
-
-            Stat::make('Aguardando Peca', $dados['aguardando_peca'])
-                ->description('Pecas encomendadas')
-                ->descriptionIcon('heroicon-o-cube')
-                ->color('purple'),
 
             Stat::make('Maquinas Quebradas', $dados['maquinas_quebradas'])
                 ->description('Fora de operacao')

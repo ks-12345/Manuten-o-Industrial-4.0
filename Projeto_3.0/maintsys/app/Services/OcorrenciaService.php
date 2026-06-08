@@ -9,6 +9,7 @@ use App\Models\Historico;
 use App\Models\Maquina;
 use App\Models\Ocorrencia;
 use App\Models\User;
+use App\Models\Inspecao;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -16,7 +17,8 @@ class OcorrenciaService
 {
     public function __construct(
         private readonly HistoricoService $historicoService
-    ) {}
+    ) {
+    }
 
     /**
      * Criar nova ocorrência.
@@ -26,7 +28,6 @@ class OcorrenciaService
         return DB::transaction(function () use ($dto) {
             $ocorrencia = Ocorrencia::create($dto->toArray());
 
-            // Atualizar status da máquina para 'atencao' se estiver operando
             $maquina = Maquina::find($dto->maquinaId);
             if ($maquina && $maquina->status === StatusMaquina::Operando) {
                 $maquina->update(['status' => StatusMaquina::Atencao->value]);
@@ -37,13 +38,15 @@ class OcorrenciaService
     }
 
     /**
-     * Técnico assume a ocorrência.
+     * Técnico assume a ocorrência: ABERTA -> ASSUMIDA.
      */
     public function assumir(Ocorrencia $ocorrencia, User $tecnico): Ocorrencia
     {
-        if (!$ocorrencia->status === StatusOcorrencia::Aberta) {
+        $ocorrencia->refresh();
+
+        if ($ocorrencia->status !== StatusOcorrencia::Aberta) {
             throw ValidationException::withMessages([
-                'status' => 'Apenas ocorrências abertas podem ser assumidas.',
+                'status' => 'Apenas ocorrências ABERTAS podem ser assumidas.',
             ]);
         }
 
@@ -56,7 +59,7 @@ class OcorrenciaService
         return DB::transaction(function () use ($ocorrencia, $tecnico) {
             $ocorrencia->update([
                 'tecnico_id'  => $tecnico->id,
-                'status'      => StatusOcorrencia::EmAnalise->value,
+                'status'      => StatusOcorrencia::Assumida->value,
                 'assumida_em' => now(),
             ]);
 
@@ -72,14 +75,17 @@ class OcorrenciaService
     }
 
     /**
-     * Transicionar status da ocorrência.
+     * Transição genérica validada por state machine do enum.
+     * Usar apenas para transições permitidas pelos estados oficiais.
      */
     public function transicionarStatus(
-        Ocorrencia     $ocorrencia,
+        Ocorrencia $ocorrencia,
         StatusOcorrencia $novoStatus,
-        User           $user,
-        ?string        $observacao = null
+        User $user,
+        ?string $observacao = null
     ): Ocorrencia {
+        $ocorrencia->refresh();
+
         if (!$ocorrencia->podeTransicionarPara($novoStatus)) {
             throw ValidationException::withMessages([
                 'status' => "Não é possível alterar de '{$ocorrencia->status->getLabel()}' para '{$novoStatus->getLabel()}'.",
@@ -91,10 +97,14 @@ class OcorrenciaService
 
             $updates = ['status' => $novoStatus->value];
 
-            if ($novoStatus === StatusOcorrencia::Finalizada) {
+            if ($novoStatus === StatusOcorrencia::Concluida) {
                 $updates['finalizada_em'] = now();
-                // Restaurar status da máquina
-                $ocorrencia->maquina->update(['status' => StatusMaquina::Operando->value]);
+
+                // Restaurar status da máquina após conclusão.
+                // Mantido simples: se houver máquina relacionada, retorna para Operando.
+                if ($ocorrencia->relationLoaded('maquina') || $ocorrencia->maquina) {
+                    $ocorrencia->maquina->update(['status' => StatusMaquina::Operando->value]);
+                }
             }
 
             if ($observacao) {
@@ -117,41 +127,25 @@ class OcorrenciaService
     }
 
     /**
-     * Cancelar ocorrência.
+     * State machine: decisão final após inspeção.
+     * Obs: este método existe apenas para manter compatibilidade com o fluxo.
+     */
+    public function finalizarAposInspecao(Ocorrencia $ocorrencia, Inspecao $inspecao, User $tecnico): Ocorrencia
+    {
+        return app(OcorrenciaStateMachineService::class)
+            ->finalizarAposInspecao($ocorrencia, $inspecao, $tecnico);
+    }
+
+
+    /**
+     * Cancelamento NÃO faz parte do state machine.
+     * Implementação propositalmente bloqueada para evitar estados fora do enum oficial.
      */
     public function cancelar(Ocorrencia $ocorrencia, User $user, string $motivo): Ocorrencia
     {
-        if ($ocorrencia->estaFinalizada() || $ocorrencia->estaCancelada()) {
-            throw ValidationException::withMessages([
-                'status' => 'Esta ocorrência não pode ser cancelada.',
-            ]);
-        }
-
-        return DB::transaction(function () use ($ocorrencia, $user, $motivo) {
-            $ocorrencia->update([
-                'status'               => StatusOcorrencia::Cancelada->value,
-                'observacoes_internas' => $motivo,
-            ]);
-
-            $this->historicoService->registrar(
-                $ocorrencia,
-                Historico::ACAO_OCORRENCIA_CANCELADA,
-                "Ocorrência cancelada. Motivo: {$motivo}",
-                $user
-            );
-
-            // Verificar se há outras ocorrências abertas para a máquina
-            $outrasAbertas = Ocorrencia::where('maquina_id', $ocorrencia->maquina_id)
-                ->whereNotIn('status', ['finalizada', 'cancelada'])
-                ->where('id', '!=', $ocorrencia->id)
-                ->exists();
-
-            if (!$outrasAbertas) {
-                $ocorrencia->maquina->update(['status' => StatusMaquina::Operando->value]);
-            }
-
-            return $ocorrencia->fresh();
-        });
+        throw ValidationException::withMessages([
+            'status' => 'Cancelamento não faz parte do state machine oficial deste fluxo.',
+        ]);
     }
 
     /**
@@ -160,20 +154,17 @@ class OcorrenciaService
     public function estatisticas(): array
     {
         return [
-            'abertas'              => Ocorrencia::where('status', StatusOcorrencia::Aberta->value)->count(),
-            'em_analise'           => Ocorrencia::where('status', StatusOcorrencia::EmAnalise->value)->count(),
+            'abertas'               => Ocorrencia::where('status', StatusOcorrencia::Aberta->value)->count(),
+            'assumidas'             => Ocorrencia::where('status', StatusOcorrencia::Assumida->value)->count(),
+            'em_inspecao'           => Ocorrencia::where('status', StatusOcorrencia::EmInspecao->value)->count(),
             'aguardando_orcamento' => Ocorrencia::where('status', StatusOcorrencia::AguardandoOrcamento->value)->count(),
-            'aguardando_peca'      => Ocorrencia::where('status', StatusOcorrencia::AguardandoPeca->value)->count(),
-            'em_corretiva'         => Ocorrencia::where('status', StatusOcorrencia::EmCorretiva->value)->count(),
-            'finalizadas_mes'      => Ocorrencia::where('status', StatusOcorrencia::Finalizada->value)
+            'corretiva'            => Ocorrencia::where('status', StatusOcorrencia::Corretiva->value)->count(),
+            'concluidas_mes'       => Ocorrencia::where('status', StatusOcorrencia::Concluida->value)
                 ->whereMonth('finalizada_em', now()->month)
                 ->count(),
         ];
     }
 
-    /**
-     * Ocorrências por professor (para dashboard do Professor).
-     */
     public function ocorrenciasPorProfessor(User $professor): \Illuminate\Database\Eloquent\Collection
     {
         return Ocorrencia::with(['maquina.setor', 'tecnico'])
@@ -182,15 +173,12 @@ class OcorrenciaService
             ->get();
     }
 
-    /**
-     * Ocorrências atribuídas ao técnico (para dashboard do Técnico).
-     */
     public function ocorrenciasPorTecnico(User $tecnico): \Illuminate\Database\Eloquent\Collection
     {
         return Ocorrencia::with(['maquina.setor', 'professor', 'inspecao'])
             ->where('tecnico_id', $tecnico->id)
-            ->whereNotIn('status', ['finalizada', 'cancelada'])
             ->orderByDesc('created_at')
             ->get();
     }
 }
+

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\StatusOcorrencia;
 use App\Models\Ocorrencia;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -27,13 +28,18 @@ class StatsProfessorWidget extends BaseWidget
                 ->color('warning'),
 
             Stat::make('Em Andamento', Ocorrencia::where('professor_id', $userId)
-                ->whereIn('status', ['em_analise', 'aguardando_orcamento', 'aguardando_peca', 'em_corretiva'])
+                ->whereIn('status', [
+                    StatusOcorrencia::Assumida->value,
+                    StatusOcorrencia::EmInspecao->value,
+                    StatusOcorrencia::AguardandoOrcamento->value,
+                    StatusOcorrencia::Corretiva->value,
+                ])
                 ->count())
                 ->description('Em tratamento')
                 ->descriptionIcon('heroicon-o-arrow-path')
                 ->color('info'),
 
-            Stat::make('Finalizadas', Ocorrencia::where('professor_id', $userId)->where('status', 'finalizada')->count())
+            Stat::make('Finalizadas', Ocorrencia::where('professor_id', $userId)->where('status', StatusOcorrencia::Concluida->value)->count())
                 ->description('Resolvidas')
                 ->descriptionIcon('heroicon-o-check-circle')
                 ->color('success'),

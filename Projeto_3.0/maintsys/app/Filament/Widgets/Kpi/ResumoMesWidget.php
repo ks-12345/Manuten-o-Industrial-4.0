@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets\Kpi;
 
+use App\Enums\StatusOcorrencia;
 use App\Models\Corretiva;
 use App\Models\Ocorrencia;
 use App\Models\Preventiva;
@@ -41,7 +42,7 @@ class ResumoMesWidget extends BaseWidget
                 ->whereBetween('data_realizada', [$inicio->toDateString(), $fim->toDateString()])
                 ->sum('custo');
 
-            $finalizadas = Ocorrencia::where('status', 'finalizada')
+            $finalizadas = Ocorrencia::where('status', StatusOcorrencia::Concluida->value)
                 ->whereBetween('finalizada_em', [$inicio, $fim])
                 ->count();
 

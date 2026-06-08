@@ -36,7 +36,7 @@ class ViewOcorrencia extends ViewRecord
                 ->icon('heroicon-o-magnifying-glass')
                 ->color('info')
                 ->visible(fn() => $this->record->tecnico_id === Auth::id()
-                    && $this->record->status->value === 'em_analise'
+                    && $this->record->status === StatusOcorrencia::Assumida
                     && !$this->record->inspecao)
                 ->action(function () {
                     app(InspecaoService::class)->iniciar($this->record, Auth::user());

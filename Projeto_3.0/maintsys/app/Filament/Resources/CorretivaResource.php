@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\StatusOcorrencia;
 use App\Enums\TipoCorretiva;
 use App\Filament\Resources\CorretivaResource\Pages;
 use App\Models\Corretiva;
@@ -75,7 +76,10 @@ class CorretivaResource extends Resource
                     ->label('Ocorrência Vinculada')
                     ->options(fn(Forms\Get $get) =>
                         Ocorrencia::where('maquina_id', $get('maquina_id'))
-                            ->whereIn('status', ['em_analise', 'aguardando_peca', 'em_corretiva'])
+                            ->whereIn('status', [
+                                StatusOcorrencia::Corretiva->value,
+                                StatusOcorrencia::AguardandoOrcamento->value,
+                            ])
                             ->pluck('titulo', 'id'))
                     ->searchable()
                     ->nullable()

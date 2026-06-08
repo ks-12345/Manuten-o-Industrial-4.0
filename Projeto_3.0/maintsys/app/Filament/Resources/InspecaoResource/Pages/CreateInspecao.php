@@ -6,19 +6,18 @@ use App\Filament\Resources\InspecaoResource;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
 
-class CreateInspecao extends CreateRecord
+// Fluxo de criação manual removido.
+// Esta classe permanece apenas para compatibilidade, mas o Resource não expõe a rota/ação.
+// Mantemos o arquivo para evitar erro de autoload em referências antigas.
+
+namespace App\Filament\Resources\InspecaoResource\Pages;
+
+use Filament\Resources\Pages\Page;
+
+class CreateInspecao extends Page
 {
-    protected static string $resource = InspecaoResource::class;
+    protected static string $resource = \App\Filament\Resources\InspecaoResource::class;
 
-    protected function mutateFormDataBeforeCreate(array $data): array
-    {
-        $data['ocorrencia_id'] = request()->route('record'); // ou ownerRecord se vier de relação
-        $data['tecnico_id'] = Auth::id();
-
-        return $data;
-    }
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
-    }
+    protected static string $view = 'filament.pages.inspecao-create-bloqueada';
 }
+

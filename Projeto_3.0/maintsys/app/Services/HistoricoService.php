@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Historico;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class HistoricoService
 {
@@ -22,7 +23,7 @@ class HistoricoService
         return Historico::create([
             'historiavel_type' => get_class($model),
             'historiavel_id'   => $model->getKey(),
-            'user_id'          => $user?->id ?? auth()->id(),
+            'user_id'          => $user?->id ?? Auth::id(),
             'acao'             => $acao,
             'descricao'        => $descricao,
             'dados_anteriores' => $dadosAnteriores ?: null,

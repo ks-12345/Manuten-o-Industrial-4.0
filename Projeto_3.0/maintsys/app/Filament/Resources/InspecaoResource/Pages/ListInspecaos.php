@@ -13,14 +13,9 @@ class ListInspecaos extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            Actions\CreateAction::make()
-                ->mutateFormDataUsing(function (array $data): array {
-                    $data['tecnico_id'] = Auth::id();
-                    $data['inicio'] = now();
-
-                    return $data;
-                }),
-        ];
+        // Inspeções não podem ser criadas manualmente.
+        // Devem nascer apenas pelo fluxo: Ocorrência -> Executar Inspeção.
+        return [];
     }
+
 }

@@ -70,13 +70,12 @@ protected static function booted(): void
         return $query->where('status', StatusOcorrencia::Aberta);
     }
 
-    public function scopeEmAndamento($query)
-    {
-        return $query->whereNotIn('status', [
-            StatusOcorrencia::Finalizada->value,
-            StatusOcorrencia::Cancelada->value,
-        ]);
-    }
+public function scopeEmAndamento($query)
+{
+    return $query->whereNotIn('status', [
+        StatusOcorrencia::Concluida->value,
+    ]);
+}
 
     public function scopePorProfessor($query, int $userId)
     {
@@ -110,6 +109,12 @@ protected static function booted(): void
         return $this->hasOne(Inspecao::class, 'ocorrencia_id');
     }
 
+    public function inspecaoAtiva(): HasOne
+    {
+        return $this->hasOne(Inspecao::class, 'ocorrencia_id')->whereNull('fim');
+    }
+
+
     public function corretiva(): HasOne
     {
         return $this->hasOne(Corretiva::class, 'ocorrencia_id');
@@ -129,11 +134,12 @@ protected static function booted(): void
 
     public function estaFinalizada(): bool
     {
-        return $this->status === StatusOcorrencia::Finalizada;
+        return $this->status === StatusOcorrencia::Concluida;
     }
 
     public function estaCancelada(): bool
     {
-        return $this->status === StatusOcorrencia::Cancelada;
+        // Mantém compatibilidade com dados históricos, mas o enum oficial não contém CANCELADA.
+        return false;
     }
 }

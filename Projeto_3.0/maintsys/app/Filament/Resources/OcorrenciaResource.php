@@ -192,7 +192,7 @@ class OcorrenciaResource extends Resource
                     ->color('success')
                     ->requiresConfirmation()
                     ->modalDescription('Você será atribuído como técnico responsável por esta ocorrência.')
-                    ->visible(fn($record) => Auth::user()->can('assumir', $record))
+                    ->visible(fn ($record) => Auth::user()->can('assumir', $record))
                     ->action(function ($record) {
                         app(OcorrenciaService::class)->assumir($record, Auth::user());
                         Notification::make()->success()->title('Ocorrência assumida!')->send();
@@ -215,18 +215,30 @@ class OcorrenciaResource extends Resource
                         Notification::make()->success()->title('Ocorrência cancelada.')->send();
                     }),
 
-                // Ação: Iniciar Inspeção
-                Tables\Actions\Action::make('iniciar_inspecao')
-                    ->label('Iniciar Inspeção')
-                    ->icon('heroicon-o-magnifying-glass')
-                    ->color('info')
+                // Ação: Executar Inspeção (cria ou abre inspeção vinculada à ocorrência)
+                Tables\Actions\Action::make('executar_inspecao')
+                    ->label('Executar Inspeção')
+
+                    ->icon('heroicon-o-play')
+                    ->color('primary')
                     ->visible(fn($record) => $record->tecnico_id === Auth::id()
-                        && $record->status->value === 'em_analise'
-                        && !$record->inspecao)
+                        && in_array($record->status->value, [
+                            'assumida',
+                            'em_inspecao',
+                        ], true))
                     ->action(function ($record) {
-                        app(\App\Services\InspecaoService::class)->iniciar($record, Auth::user());
-                        Notification::make()->success()->title('Inspeção iniciada!')->send();
+                        $inspecao = app(\App\Services\InspecaoService::class)
+                            ->criarOuAbrirParaOcorrencia($record, Auth::user());
+
+                        // Garante que a transição de EM_INSPECAO passa pelo service state machine.
+                        if ($record->status === \App\Enums\StatusOcorrencia::Assumida) {
+                            app(\App\Services\OcorrenciaService::class)
+                                ->transicionarStatus($record->fresh(), \App\Enums\StatusOcorrencia::EmInspecao, Auth::user());
+                        }
+
+                        return redirect()->to(\App\Filament\Resources\InspecaoResource\Pages\ExecutarInspecao::getUrl(['record' => $inspecao]));
                     }),
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([]),

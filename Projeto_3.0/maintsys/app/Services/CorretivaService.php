@@ -41,7 +41,7 @@ class CorretivaService
                 $ocorrencia = Ocorrencia::find($dto->ocorrenciaId);
                 if ($ocorrencia) {
                     $ocorrencia->update([
-                        'status' => StatusOcorrencia::EmCorretiva->value,
+                        'status' => StatusOcorrencia::Corretiva->value,
                     ]);
                 }
             }
@@ -95,7 +95,7 @@ class CorretivaService
             if ($corretiva->ocorrencia_id && $corretiva->ocorrencia) {
                 $this->ocorrenciaService->transicionarStatus(
                     $corretiva->ocorrencia,
-                    StatusOcorrencia::Finalizada,
+                    StatusOcorrencia::Concluida,
                     $tecnico
                 );
             }

@@ -50,14 +50,14 @@
                 <x-slot name="heading">⚠️ Necessita substituição de peça?</x-slot>
                 <div class="flex gap-4">
                     <x-filament::button
-                        wire:click="finalizarInspecao(['necessita_peca' => true])"
+                        wire:click="necessitaPeca"
                         color="danger"
                         icon="heroicon-o-check"
                     >
                         ✅ Sim, necessita peça
                     </x-filament::button>
                     <x-filament::button
-                        wire:click="finalizarInspecao(['necessita_peca' => false])"
+                        wire:click="naoNecessitaPeca"
                         color="success"
                         icon="heroicon-o-x-mark"
                     >

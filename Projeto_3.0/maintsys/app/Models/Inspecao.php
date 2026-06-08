@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Inspecao extends Model
 {
@@ -48,10 +49,10 @@ class Inspecao extends Model
         return $this->hasOne(SolicitacaoPeca::class, 'inspecao_id');
     }
 
-    public function checklistRespostas(): HasMany
-    {
-        return $this->morphMany(ChecklistResposta::class, 'checklistable');
-    }
+   public function checklistRespostas(): MorphMany
+{
+    return $this->morphMany(ChecklistResposta::class, 'checklistable');
+}
 
     public function historicos()
     {

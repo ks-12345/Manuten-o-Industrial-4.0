@@ -7,58 +7,55 @@ use Filament\Support\Contracts\HasLabel;
 
 enum StatusOcorrencia: string implements HasLabel, HasColor
 {
-    case Aberta              = 'aberta';
-    case EmAnalise           = 'em_analise';
+    case Aberta               = 'aberta';
+    case Assumida             = 'assumida';
+    case EmInspecao           = 'em_inspecao';
+    case Corretiva           = 'corretiva';
     case AguardandoOrcamento = 'aguardando_orcamento';
-    case AguardandoPeca      = 'aguardando_peca';
-    case EmCorretiva         = 'em_corretiva';
-    case Finalizada          = 'finalizada';
-    case Cancelada           = 'cancelada';
+    case Concluida           = 'concluida';
 
     public function getLabel(): string
     {
-        return match($this) {
-            self::Aberta              => 'Aberta',
-            self::EmAnalise           => 'Em Análise',
+        return match ($this) {
+            self::Aberta               => 'Aberta',
+            self::Assumida             => 'Assumida',
+            self::EmInspecao           => 'Em Inspeção',
+            self::Corretiva           => 'Corretiva',
             self::AguardandoOrcamento => 'Aguardando Orçamento',
-            self::AguardandoPeca      => 'Aguardando Peça',
-            self::EmCorretiva         => 'Em Corretiva',
-            self::Finalizada          => 'Finalizada',
-            self::Cancelada           => 'Cancelada',
+            self::Concluida           => 'Concluída',
         };
     }
 
     public function getColor(): string|array|null
     {
-        return match($this) {
-            self::Aberta              => 'warning',
-            self::EmAnalise           => 'info',
+        return match ($this) {
+            self::Aberta               => 'warning',
+            self::Assumida             => 'info',
+            self::EmInspecao           => 'primary',
+            self::Corretiva           => 'success',
             self::AguardandoOrcamento => 'orange',
-            self::AguardandoPeca      => 'purple',
-            self::EmCorretiva         => 'primary',
-            self::Finalizada          => 'success',
-            self::Cancelada           => 'danger',
+            self::Concluida           => 'success',
         };
     }
 
     public static function options(): array
     {
-        return collect(self::cases())->mapWithKeys(
-            fn ($case) => [$case->value => $case->getLabel()]
-        )->all();
+        return collect(self::cases())
+            ->mapWithKeys(fn ($case) => [$case->value => $case->getLabel()])
+            ->all();
     }
 
-    /** Fluxo permitido de transições */
+    /** Fluxo permitido de transições (state machine oficial) */
     public function transicoesPermitidas(): array
     {
-        return match($this) {
-            self::Aberta              => [self::EmAnalise, self::Cancelada],
-            self::EmAnalise           => [self::AguardandoOrcamento, self::EmCorretiva, self::Cancelada],
-            self::AguardandoOrcamento => [self::AguardandoPeca, self::EmCorretiva, self::Cancelada],
-            self::AguardandoPeca      => [self::EmCorretiva],
-            self::EmCorretiva         => [self::Finalizada],
-            self::Finalizada          => [],
-            self::Cancelada           => [],
+        return match ($this) {
+            self::Aberta => [self::Assumida],
+            self::Assumida => [self::EmInspecao],
+            self::EmInspecao => [self::Corretiva, self::AguardandoOrcamento],
+            self::AguardandoOrcamento => [self::Corretiva],
+            self::Corretiva => [self::Concluida],
+            self::Concluida => [],
         };
     }
 }
+

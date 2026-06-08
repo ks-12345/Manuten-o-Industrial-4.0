@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\StatusOcorrencia;
 use App\Enums\StatusSolicitacaoPeca;
 use App\Filament\Resources\SolicitacaoPecaResource\Pages;
 use App\Filament\Resources\SolicitacaoPecaResource\RelationManagers\OrcamentosRelationManager;
@@ -91,7 +92,7 @@ class SolicitacaoPecaResource extends Resource
                         if ($record->inspecao?->ocorrencia) {
                             app(\App\Services\OcorrenciaService::class)->transicionarStatus(
                                 $record->inspecao->ocorrencia,
-                                \App\Enums\StatusOcorrencia::EmCorretiva,
+                                StatusOcorrencia::Corretiva,
                                 Auth::user()
                             );
                         }

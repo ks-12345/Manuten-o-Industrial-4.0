@@ -26,24 +26,42 @@ class InspecaoService
      */
     public function iniciar(Ocorrencia $ocorrencia, User $tecnico): Inspecao
     {
-        if ($ocorrencia->inspecao) {
-            throw ValidationException::withMessages([
-                'inspecao' => 'Já existe uma inspeção para esta ocorrência.',
-            ]);
-        }
+        // Mantém assinatura antiga, mas aplica a regra:
+        // Inspeção nasce da ocorrência e não pode duplicar.
+        return $this->criarOuAbrirParaOcorrencia($ocorrencia, $tecnico);
+    }
 
+    /**
+     * Cria ou abre a inspeção ativa vinculada à ocorrência.
+     * Regra: uma ocorrência só pode ter uma inspeção ativa.
+     */
+    public function criarOuAbrirParaOcorrencia(Ocorrencia $ocorrencia, User $tecnico): Inspecao
+    {
         if ($ocorrencia->tecnico_id !== $tecnico->id) {
             throw ValidationException::withMessages([
-                'tecnico' => 'Somente o técnico responsável pode iniciar a inspeção.',
+                'tecnico' => 'Somente o técnico responsável pode iniciar/executar a inspeção.',
             ]);
         }
 
         return DB::transaction(function () use ($ocorrencia, $tecnico) {
+            $ocorrencia->refresh();
+
+            // Se já existir inspeção (ativa), apenas abre.
+            $inspecaoAtiva = $ocorrencia->inspecao()->whereNull('fim')->first();
+            if ($inspecaoAtiva) {
+                return $inspecaoAtiva;
+            }
+
+            // Regra: uma ocorrência só pode ter uma inspeção ativa.
+            // Se existir inspeção ativa (fim NULL) já retornamos acima.
+            // Portanto, podemos criar nova inspeção apenas se não houver inspeção ativa.
+
             $inspecao = Inspecao::create([
                 'ocorrencia_id' => $ocorrencia->id,
                 'tecnico_id'    => $tecnico->id,
                 'inicio'        => now(),
             ]);
+
 
             $this->historicoService->registrar(
                 $ocorrencia,
@@ -52,9 +70,15 @@ class InspecaoService
                 $tecnico
             );
 
+            // Inspeção não altera o status final da ocorrência.
+            // A transição para EM_INSPECAO deve ser controlada pelo state machine oficial.
+            // (Mantemos aqui apenas a criação/retorno da inspeção.)
+
             return $inspecao;
+
         });
     }
+
 
     /**
      * Finalizar inspeção com diagnóstico.
@@ -88,22 +112,10 @@ class InspecaoService
                 $tecnico
             );
 
-            if ($necessitaPeca) {
-                // Alterar status da ocorrência para aguardando orçamento
-                $this->ocorrenciaService->transicionarStatus(
-                    $inspecao->ocorrencia,
-                    StatusOcorrencia::AguardandoOrcamento,
-                    $tecnico,
-                    'Peça necessária identificada na inspeção.'
-                );
-            } else {
-                // Pode ir direto para corretiva
-                $this->ocorrenciaService->transicionarStatus(
-                    $inspecao->ocorrencia,
-                    StatusOcorrencia::EmCorretiva,
-                    $tecnico
-                );
-            }
+            // Decisão de status NÃO é responsabilidade da Inspeção.
+            // Ela apenas coleta dados técnicos e retorna o resultado.
+            // A ocorrência será atualizada em OcorrenciaService::finalizarAposInspecao().
+
 
             return $inspecao->fresh();
         });

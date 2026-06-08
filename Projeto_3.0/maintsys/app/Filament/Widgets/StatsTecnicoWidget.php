@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\StatusOcorrencia;
 use App\Models\Corretiva;
 use App\Models\Ocorrencia;
 use App\Models\Preventiva;
@@ -19,7 +20,7 @@ class StatsTecnicoWidget extends BaseWidget
 
         return [
             Stat::make('Ocorrências Atribuídas', Ocorrencia::where('tecnico_id', $userId)
-                ->whereNotIn('status', ['finalizada', 'cancelada'])->count())
+                ->where('status', '!=', StatusOcorrencia::Concluida->value)->count())
                 ->description('Em andamento')
                 ->descriptionIcon('heroicon-o-clipboard-document')
                 ->color('primary'),

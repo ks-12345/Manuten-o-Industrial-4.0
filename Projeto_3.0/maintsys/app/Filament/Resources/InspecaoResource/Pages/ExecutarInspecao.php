@@ -10,7 +10,9 @@ use App\Models\ChecklistResposta;
 use App\Models\SolicitacaoPeca;
 use App\Services\ChecklistService;
 use App\Services\InspecaoService;
+use App\Services\OcorrenciaService;
 use Filament\Actions\Action;
+
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Repeater;
@@ -42,6 +44,19 @@ public Inspecao $record;
     public ?array $formData    = [];
     public bool   $finalizando = false;
     public bool   $necessiPeca = false;
+
+    public function necessitaPeca(): void
+    {
+        $this->necessiPeca = true;
+        $this->finalizando = true;
+    }
+
+    public function naoNecessitaPeca(): void
+    {
+        $this->necessiPeca = false;
+        $this->finalizando = true;
+    }
+
 
     // Dados da solicitação de peça
     public ?string $nomePeca   = null;
@@ -111,15 +126,17 @@ public Inspecao $record;
         $this->modalPerguntaId = null;
     }
 
-    public function finalizarInspecao(array $data): void
-    {
-        if ($this->checklistInspecao) {
-            $this->validarRespostasChecklist();
-        }
-
-        $this->finalizando = true;
-        $this->necessiPeca = $data['necessita_peca'];
+public function finalizarInspecao(array $data): void
+{
+    // Executa validações antes de entrar na etapa final de salvamento.
+    if ($this->checklistInspecao) {
+        $this->validarRespostasChecklist();
     }
+
+    $this->finalizando = true;
+    $this->necessiPeca = (bool) ($data['necessita_peca'] ?? false);
+}
+
 
     private function validarRespostasChecklist(): void
     {
@@ -153,38 +170,50 @@ public Inspecao $record;
         }
     }
 
-    public function salvarFinalizar(): void
-    {
-        if ($this->checklistInspecao) {
-            app(ChecklistService::class)->salvarRespostas(
-                $this->record,
-                $this->checklistInspecao,
-                $this->respostasChecklist
-            );
-        }
 
-        $service = app(InspecaoService::class);
 
-        $inspecao = $service->finalizar(
+public function salvarFinalizar()
+{
+    // Revalida antes de salvar.
+    if ($this->checklistInspecao) {
+        $this->validarRespostasChecklist();
+        app(ChecklistService::class)->salvarRespostas(
             $this->record,
-            $this->formData['diagnostico']  ?? '',
-            $this->necessiPeca,
-            Auth::user(),
-            $this->formData['observacoes'] ?? null
+            $this->checklistInspecao,
+            $this->respostasChecklist
         );
+    }
+
+    $service = app(InspecaoService::class);
+
+    $inspecao = $service->finalizar(
+        $this->record,
+        $this->formData['diagnostico']  ?? '',
+        $this->necessiPeca,
+        Auth::user(),
+        $this->formData['observacoes'] ?? null
+    );
+
 
         if ($this->necessiPeca && $this->nomePeca) {
             $service->solicitarPeca($inspecao, [
                 'nome_peca'  => $this->nomePeca,
-                'quantidade' => $this->quantidade,
+                'quantidade'  => $this->quantidade,
                 'descricao'  => $this->descricaoPeca,
                 'referencia' => $this->referenciaPeca,
             ]);
         }
 
+        // Atualiza status da ocorrência com base no resultado da inspeção.
+        app(OcorrenciaService::class)->finalizarAposInspecao(
+            $inspecao->ocorrencia,
+            $inspecao,
+            Auth::user()
+        );
+
         Notification::make()->success()->title('Inspeção finalizada com sucesso!')->send();
 
-        $this->redirect(InspecaoResource::getUrl('index'));
+        return redirect()->to(InspecaoResource::getUrl('index'));
     }
 
     public function getTitle(): string

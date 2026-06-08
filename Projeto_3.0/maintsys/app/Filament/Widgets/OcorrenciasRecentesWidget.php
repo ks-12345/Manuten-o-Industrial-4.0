@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\StatusOcorrencia;
 use App\Filament\Resources\OcorrenciaResource;
 use App\Models\Ocorrencia;
 use Filament\Tables;
@@ -19,7 +20,7 @@ class OcorrenciasRecentesWidget extends BaseWidget
     {
         $user  = Auth::user();
         $query = Ocorrencia::with(['maquina', 'professor', 'tecnico'])
-            ->whereNotIn('status', ['finalizada', 'cancelada'])
+            ->where('status', '!=', StatusOcorrencia::Concluida->value)
             ->latest();
 
         if ($user->hasRole('professor') && !$user->hasRole('admin')) {
