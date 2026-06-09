@@ -1,7 +1,5 @@
 # Manutenção Industrial 4.0 🏭
 
-> **Status do Projeto:** 🚧 Em desenvolvimento
-
 | Equipe |
 | :--- |
 | **Beatriz dos Santos** |
