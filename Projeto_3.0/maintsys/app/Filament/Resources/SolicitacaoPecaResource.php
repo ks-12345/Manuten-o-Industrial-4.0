@@ -33,10 +33,12 @@ class SolicitacaoPecaResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('maquina.nome')
-                    ->label('Máquina')
-                    ->searchable()
-                    ->description(fn($r) => $r->inspecao?->ocorrencia?->codigo),
+Tables\Columns\TextColumn::make('maquina.nome')
+    ->label('Máquina')
+    ->searchable()
+    ->description(fn (SolicitacaoPeca $record) =>
+        $record->inspecao?->ocorrencia?->codigo
+    ),
 
                 Tables\Columns\TextColumn::make('nome_peca')
                     ->label('Peça Solicitada')
@@ -82,7 +84,9 @@ class SolicitacaoPecaResource extends Resource
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn($r) => $r->status === StatusSolicitacaoPeca::AguardandoPeca)
+                    ->visible(fn (SolicitacaoPeca $record) =>
+    $record->status === StatusSolicitacaoPeca::AguardandoPeca
+)
                     ->action(function ($record) {
                         $record->update([
                             'status'          => StatusSolicitacaoPeca::PecaRecebida->value,

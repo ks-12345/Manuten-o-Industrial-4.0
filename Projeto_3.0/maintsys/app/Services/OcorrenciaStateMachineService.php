@@ -47,6 +47,18 @@ class OcorrenciaStateMachineService
             // Observação: OcorrenciaService::transicionarStatus já registra histórico.
             $ocorrenciaService = app(OcorrenciaService::class);
 
+            if ($ocorrencia->status === $novoStatus) {
+                return $ocorrencia;
+            }
+
+            if ($ocorrencia->status === StatusOcorrencia::Assumida) {
+                $ocorrencia = $ocorrenciaService->transicionarStatus(
+                    $ocorrencia,
+                    StatusOcorrencia::EmInspecao,
+                    $tecnico
+                );
+            }
+
             return $ocorrenciaService->transicionarStatus(
                 $ocorrencia,
                 $novoStatus,

@@ -73,33 +73,77 @@ public Inspecao $record;
     public function mount(Inspecao $record): void
     {
         $this->record = $record;
+        $this->formData = [
+            'diagnostico' => $record->diagnostico ?? '',
+            'observacoes' => $record->observacoes ?? '',
+        ];
+        $this->necessiPeca = (bool) $record->necessita_peca;
+
+        if ($solicitacao = $record->solicitacaoPeca) {
+            $this->nomePeca = $solicitacao->nome_peca;
+            $this->quantidade = (int) $solicitacao->quantidade;
+            $this->descricaoPeca = $solicitacao->descricao;
+            $this->referenciaPeca = $solicitacao->referencia;
+        }
+
         $this->carregarChecklist();
     }
 
-    private function carregarChecklist(): void
-    {
-        $maquina = $this->record->ocorrencia?->maquina;
-        if (!$maquina) return;
+private function carregarChecklist(): void
+{
+    $maquina = $this->record->ocorrencia?->maquina;
 
-        $service = app(ChecklistService::class);
-        $this->checklistInspecao = $service->modeloParaMaquina($maquina, TipoChecklist::Inspecao);
-
-        if ($this->checklistInspecao) {
-            $respostasExistentes = $this->record->checklistRespostas()
-                ->with('pergunta')
-                ->get()
-                ->keyBy('checklist_pergunta_id');
-
-            foreach ($this->checklistInspecao->perguntas as $pergunta) {
-                $resposta = $respostasExistentes->get($pergunta->id);
-                $this->respostasChecklist[$pergunta->id] = [
-                    'resposta' => $resposta?->resposta_enum?->value ?? null,
-                    'evidencia' => $resposta?->evidencia ?? null,
-                    'descricao' => $resposta?->descricao ?? null,
-                ];
-            }
-        }
+    if (!$maquina) {
+        return;
     }
+
+    $service = app(ChecklistService::class);
+
+    $this->checklistInspecao = $service->modeloParaMaquina(
+        $maquina,
+        TipoChecklist::Inspecao
+    );
+
+    if (!$this->checklistInspecao) {
+        Notification::make()
+            ->warning()
+            ->title('Checklist não encontrado')
+            ->body(
+                "A máquina '{$maquina->nome}' não possui checklist de inspeção cadastrado."
+            )
+            ->persistent()
+            ->send();
+
+        return;
+    }
+
+    $respostasExistentes = $this->record->checklistRespostas()
+        ->with('pergunta')
+        ->get()
+        ->keyBy('checklist_pergunta_id');
+
+    foreach ($this->checklistInspecao->perguntas as $pergunta) {
+        $resposta = $respostasExistentes->get($pergunta->id);
+
+        $this->respostasChecklist[$pergunta->id] = [
+            'resposta' => $resposta?->resposta_enum?->value ?? null,
+            'evidencia' => $resposta?->evidencia ?? null,
+            'descricao' => $resposta?->descricao ?? null,
+        ];
+    }
+
+    // Aviso para checklist sem perguntas
+    if ($this->checklistInspecao->perguntas->isEmpty()) {
+        Notification::make()
+            ->warning()
+            ->title('Checklist sem perguntas')
+            ->body(
+                "O checklist '{$this->checklistInspecao->nome}' não possui perguntas cadastradas."
+            )
+            ->persistent()
+            ->send();
+    }
+}
 
     public function selecionarResposta(string $perguntaId, string $resposta): void
     {
@@ -174,6 +218,21 @@ public function finalizarInspecao(array $data): void
 
 public function salvarFinalizar()
 {
+    $this->validate([
+        'formData.diagnostico' => ['required', 'string', 'min:3'],
+        'formData.observacoes' => ['nullable', 'string'],
+        'nomePeca' => [$this->necessiPeca ? 'required' : 'nullable', 'string', 'max:255'],
+        'quantidade' => [$this->necessiPeca ? 'required' : 'nullable', 'integer', 'min:1'],
+        'descricaoPeca' => ['nullable', 'string'],
+        'referenciaPeca' => ['nullable', 'string', 'max:255'],
+    ], [
+        'formData.diagnostico.required' => 'Informe o diagnóstico antes de finalizar a inspeção.',
+        'formData.diagnostico.min' => 'O diagnóstico deve ter pelo menos 3 caracteres.',
+        'nomePeca.required' => 'Informe o nome da peça necessária.',
+        'quantidade.required' => 'Informe a quantidade da peça.',
+        'quantidade.min' => 'A quantidade deve ser pelo menos 1.',
+    ]);
+
     // Revalida antes de salvar.
     if ($this->checklistInspecao) {
         $this->validarRespostasChecklist();
@@ -186,16 +245,20 @@ public function salvarFinalizar()
 
     $service = app(InspecaoService::class);
 
-    $inspecao = $service->finalizar(
-        $this->record,
-        $this->formData['diagnostico']  ?? '',
-        $this->necessiPeca,
-        Auth::user(),
-        $this->formData['observacoes'] ?? null
-    );
+    $inspecao = $this->record->fresh();
+
+    if (!$inspecao->estaFinalizada()) {
+        $inspecao = $service->finalizar(
+            $inspecao,
+            $this->formData['diagnostico']  ?? '',
+            $this->necessiPeca,
+            Auth::user(),
+            $this->formData['observacoes'] ?? null
+        );
+    }
 
 
-        if ($this->necessiPeca && $this->nomePeca) {
+        if ($this->necessiPeca && $this->nomePeca && !$inspecao->solicitacaoPeca()->exists()) {
             $service->solicitarPeca($inspecao, [
                 'nome_peca'  => $this->nomePeca,
                 'quantidade'  => $this->quantidade,
@@ -211,13 +274,17 @@ public function salvarFinalizar()
             Auth::user()
         );
 
-        Notification::make()->success()->title('Inspeção finalizada com sucesso!')->send();
+        Notification::make()
+        ->success()
+        ->title('Inspeção finalizada com sucesso!')
+        ->send();
 
-        return redirect()->to(InspecaoResource::getUrl('index'));
+        $this->redirect(InspecaoResource::getUrl('index'));
     }
 
     public function getTitle(): string
     {
         return "Inspeção — {$this->record->ocorrencia?->codigo}";
     }
+
 }

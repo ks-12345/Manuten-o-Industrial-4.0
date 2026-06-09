@@ -19,6 +19,7 @@
             </div>
         </x-filament::section>
 
+        
         @if (!$finalizando)
             {{-- Checklist da Inspeção --}}
             <x-checklist-executor 

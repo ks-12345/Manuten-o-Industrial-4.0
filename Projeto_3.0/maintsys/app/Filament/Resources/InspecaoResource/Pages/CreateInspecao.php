@@ -19,5 +19,10 @@ class CreateInspecao extends Page
     protected static string $resource = \App\Filament\Resources\InspecaoResource::class;
 
     protected static string $view = 'filament.pages.inspecao-create-bloqueada';
+
+        protected function getRedirectUrl(): string
+{
+    return $this->getResource()::getUrl('index');
+}
 }
 

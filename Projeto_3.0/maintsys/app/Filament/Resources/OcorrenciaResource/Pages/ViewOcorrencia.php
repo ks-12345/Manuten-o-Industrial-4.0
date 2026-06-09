@@ -39,9 +39,16 @@ class ViewOcorrencia extends ViewRecord
                     && $this->record->status === StatusOcorrencia::Assumida
                     && !$this->record->inspecao)
                 ->action(function () {
-                    app(InspecaoService::class)->iniciar($this->record, Auth::user());
+                    $inspecao = app(InspecaoService::class)->iniciar($this->record, Auth::user());
+
+                    app(OcorrenciaService::class)->transicionarStatus(
+                        $this->record->fresh(),
+                        StatusOcorrencia::EmInspecao,
+                        Auth::user()
+                    );
+
                     $this->redirect(\App\Filament\Resources\InspecaoResource::getUrl('executar',
-                        ['record' => $this->record->inspecao]));
+                        ['record' => $inspecao]));
                 }),
 
             Actions\Action::make('cancelar')

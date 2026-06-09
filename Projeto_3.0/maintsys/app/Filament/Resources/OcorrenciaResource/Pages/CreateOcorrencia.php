@@ -6,6 +6,7 @@ use App\Filament\Resources\OcorrenciaResource;
 use App\Services\OcorrenciaService;
 use App\DTOs\OcorrenciaDTO;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\Auth;
 
 class CreateOcorrencia extends CreateRecord
 {
@@ -13,7 +14,7 @@ class CreateOcorrencia extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['professor_id'] = auth()->id();
+        $data['professor_id'] = Auth::id();
         return $data;
     }
 
