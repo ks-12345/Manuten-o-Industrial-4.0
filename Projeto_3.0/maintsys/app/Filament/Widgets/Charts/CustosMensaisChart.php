@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\Auth;
 class CustosMensaisChart extends ChartWidget
 {
     protected static ?string $heading = 'Custos de Manutenção por Mês (R$)';
-    protected static ?int    $sort    = 7;
+  protected static ?string $pollingInterval = '60s';
+
+    protected static bool $isLazy = true;
+
     protected static string  $color   = 'warning';
     protected int | string | array $columnSpan = 'full';
 

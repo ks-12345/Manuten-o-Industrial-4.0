@@ -11,7 +11,10 @@ use Illuminate\Support\Facades\Auth;
 class FalhasPorSetorChart extends ChartWidget
 {
     protected static ?string $heading = 'Falhas por Setor (últimos 30 dias)';
-    protected static ?int    $sort    = 6;
+   protected static ?string $pollingInterval = '60s';
+
+    protected static bool $isLazy = true;
+
     protected static string  $color   = 'warning';
 
     protected function getData(): array

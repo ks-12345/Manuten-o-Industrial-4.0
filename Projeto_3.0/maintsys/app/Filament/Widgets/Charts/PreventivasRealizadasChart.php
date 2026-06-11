@@ -9,7 +9,10 @@ use Illuminate\Support\Facades\Auth;
 class PreventivasRealizadasChart extends ChartWidget
 {
     protected static ?string $heading = 'Preventivas: Realizadas vs Pendentes (12 meses)';
-    protected static ?int    $sort    = 8;
+    protected static ?string $pollingInterval = '60s';
+
+    protected static bool $isLazy = true;
+
     protected static string  $color   = 'success';
 
     protected function getData(): array

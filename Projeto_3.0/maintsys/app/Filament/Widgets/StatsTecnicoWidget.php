@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\Auth;
 
 class StatsTecnicoWidget extends BaseWidget
 {
-    protected static ?int $sort = 1;
+protected static ?string $pollingInterval = '60s';
+
+    protected static bool $isLazy = true;
+
 
     protected function getStats(): array
     {

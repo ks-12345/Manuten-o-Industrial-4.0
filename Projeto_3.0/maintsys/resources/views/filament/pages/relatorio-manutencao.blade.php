@@ -1,7 +1,7 @@
 <x-filament-panels::page>
     <div class="space-y-6">
-        {{-- Filtros --}}
-        <x-filament::section>
+        {{-- Filtros (Adicionada a classe 'no-print' para sumir no PDF) --}}
+        <x-filament::section class="no-print">
             <x-slot name="heading">📋 Parâmetros do Relatório</x-slot>
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
@@ -45,7 +45,7 @@
         @php $r = $this->relatorio; @endphp
 
         {{-- Totalizadores --}}
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 area-totais">
             @php
                 $totais = [
                     ['label'=>'Ocorrências','valor'=>$r['totais']['ocorrencias'],'cor'=>'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400','emoji'=>'⚠️'],
@@ -56,17 +56,17 @@
                 ];
             @endphp
             @foreach($totais as $t)
-                <div class="rounded-xl p-4 {{ $t['cor'] }} text-center">
+                <div class="rounded-xl p-4 {{ $t['cor'] }} text-center card-total">
                     <div class="text-2xl mb-1">{{ $t['emoji'] }}</div>
-                    <div class="text-xl font-bold">{{ $t['valor'] }}</div>
-                    <div class="text-xs font-medium mt-1 opacity-80">{{ $t['label'] }}</div>
+                    <div class="text-xl font-bold valor-total">{{ $t['valor'] }}</div>
+                    <div class="text-xs font-medium mt-1 opacity-80 label-total">{{ $t['label'] }}</div>
                 </div>
             @endforeach
         </div>
 
         {{-- Ocorrências --}}
         @if($r['ocorrencias']->isNotEmpty())
-            <x-filament::section>
+            <x-filament::section class="secao-relatorio">
                 <x-slot name="heading">⚠️ Ocorrências ({{ $r['ocorrencias']->count() }})</x-slot>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border-collapse">
@@ -110,7 +110,7 @@
 
         {{-- Corretivas --}}
         @if($r['corretivas']->isNotEmpty())
-            <x-filament::section>
+            <x-filament::section class="secao-relatorio">
                 <x-slot name="heading">🔧 Corretivas ({{ $r['corretivas']->count() }})</x-slot>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border-collapse">
@@ -140,7 +140,7 @@
                                     <td class="py-2 px-3 text-gray-400 text-xs">{{ $c->created_at->format('d/m/Y') }}</td>
                                 </tr>
                             @endforeach
-                            <tr class="bg-gray-100 dark:bg-gray-800 font-bold">
+                            <tr class="bg-gray-100 dark:bg-gray-800 font-bold linha-total-tabela">
                                 <td class="py-2 px-3" colspan="6">TOTAL CORRETIVAS</td>
                                 <td class="py-2 px-3 text-red-600">R$ {{ number_format($r['corretivas']->sum('custo_pecas'), 2, ',', '.') }}</td>
                                 <td class="py-2 px-3 text-orange-600">R$ {{ number_format($r['corretivas']->sum('custo_mao_obra'), 2, ',', '.') }}</td>
@@ -155,7 +155,7 @@
 
         {{-- Preventivas --}}
         @if($r['preventivas']->isNotEmpty())
-            <x-filament::section>
+            <x-filament::section class="secao-relatorio">
                 <x-slot name="heading">📅 Preventivas ({{ $r['preventivas']->count() }})</x-slot>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border-collapse">
@@ -197,11 +197,63 @@
         @endif
     </div>
 
+    {{-- CSS Corrigido para Impressão limpa no Dark e Light Mode --}}
     <style>
         @media print {
-            nav, header, .fi-sidebar, .fi-topbar, button, [x-data], .no-print { display: none !important; }
-            .fi-main { padding: 0 !important; margin: 0 !important; }
-            table { font-size: 11px; }
+            /* Esconde menus, barras laterais, botões e formulário de filtros */
+            nav, header, .fi-sidebar, .fi-topbar, button, .no-print, .fi-ac-action { 
+                display: none !important; 
+            }
+            
+            /* Remove margens e espaçamentos do container principal do Filament */
+            .fi-main, .fi-layout, html, body { 
+                padding: 0 !important; 
+                margin: 0 !important; 
+                background-color: #ffffff !important;
+                color: #111111 !important;
+            }
+
+            /* Força os textos a ficarem legíveis (pretos) no papel */
+            h1, h2, div, span, td, th, p {
+                color: #111111 !important;
+            }
+
+            /* Estiliza os cartões de totais para que fiquem visíveis em fundo claro */
+            .card-total {
+                background-color: #f3f4f6 !important;
+                border: 1px solid #e5e7eb !important;
+                color: #111111 !important;
+            }
+            .valor-total, .label-total {
+                color: #111111 !important;
+                opacity: 1 !important;
+            }
+
+            /* Garante que o container das tabelas (Filament Sections) apareça */
+            .secao-relatorio, .fi-section {
+                background: #ffffff !important;
+                border: 1px solid #d1d5db !important;
+                box-shadow: none !important;
+                margin-bottom: 1.5rem !important;
+            }
+
+            /* Configuração fina para as tabelas de dados */
+            table { 
+                font-size: 11px !important; 
+                width: 100% !important;
+                border-collapse: collapse !important;
+            }
+            th {
+                background-color: #f9fafb !important;
+                color: #374151 !important;
+                border-bottom: 2px solid #e5e7eb !important;
+            }
+            td {
+                border-bottom: 1px solid #e5e7eb !important;
+            }
+            .linha-total-tabela {
+                background-color: #f3f4f6 !important;
+            }
         }
     </style>
 </x-filament-panels::page>

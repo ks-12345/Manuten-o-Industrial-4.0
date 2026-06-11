@@ -14,7 +14,10 @@ use Illuminate\Support\Facades\Cache;
 class ResumoMesWidget extends BaseWidget
 {
     protected ?string $heading = 'Resumo do Mes Atual';
-    protected static ?int $sort = 1;
+  protected static ?string $pollingInterval = '60s';
+
+    protected static bool $isLazy = true;
+
 
     protected function getStats(): array
     {

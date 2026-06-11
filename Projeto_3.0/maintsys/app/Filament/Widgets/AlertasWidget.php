@@ -15,7 +15,10 @@ class AlertasWidget extends Widget
 {
     protected static string  $view            = 'filament.widgets.alertas';
     protected static ?string $heading         = 'Alertas Críticos';
-    protected static ?int    $sort            = 0;
+  protected static ?string $pollingInterval = '30s';
+
+    protected static bool $isLazy = true;
+
     protected int | string | array $columnSpan = 'full';
 
     public function getAlertas(): array

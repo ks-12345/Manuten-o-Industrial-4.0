@@ -12,7 +12,10 @@ use Illuminate\Support\Facades\Cache;
 class OcorrenciasPorMesChart extends ChartWidget
 {
     protected static ?string $heading = 'Ocorrencias vs Corretivas vs Preventivas (12 meses)';
-    protected static ?int    $sort    = 3;
+   protected static ?string $pollingInterval = '60s';
+
+    protected static bool $isLazy = true;
+
     protected static string  $color   = 'primary';
     protected int | string | array $columnSpan = 'full';
 

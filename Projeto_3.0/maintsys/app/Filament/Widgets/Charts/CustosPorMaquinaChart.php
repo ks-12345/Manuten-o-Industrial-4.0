@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Filament\Widgets\Charts;
+use App\Services;
 
 use App\Services\IndicadorService;
 use Filament\Widgets\ChartWidget;
@@ -9,7 +10,10 @@ use Illuminate\Support\Facades\Auth;
 class CustosPorMaquinaChart extends ChartWidget
 {
     protected static ?string $heading = 'Custo Total por Máquina (mês atual)';
-    protected static ?int    $sort    = 9;
+  protected static ?string $pollingInterval = '60s';
+
+    protected static bool $isLazy = true;
+
     protected static string  $color   = 'purple';
     protected int | string | array $columnSpan = 'full';
 

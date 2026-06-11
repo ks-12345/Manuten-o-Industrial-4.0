@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\Cache;
 class FalhasPorMaquinaChart extends ChartWidget
 {
     protected static ?string $heading = 'Falhas por Maquina (ultimos 30 dias)';
-    protected static ?int    $sort    = 5;
+   protected static ?string $pollingInterval = '60s';
+
+    protected static bool $isLazy = true;
+
     protected static string  $color   = 'danger';
 
     protected function getData(): array

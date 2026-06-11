@@ -13,7 +13,10 @@ use Illuminate\Support\Facades\Auth;
 class OcorrenciasRecentesWidget extends BaseWidget
 {
     protected static ?string $heading    = 'Ocorrências Recentes';
-    protected static ?int    $sort       = 2;
+protected static ?string $pollingInterval = '60s';
+
+    protected static bool $isLazy = true;
+
     protected int | string | array $columnSpan = 'full';
 
     public function table(Table $table): Table
@@ -37,9 +40,9 @@ class OcorrenciasRecentesWidget extends BaseWidget
                 Tables\Columns\TextColumn::make('maquina.nome')
                     ->label('Máquina'),
                 Tables\Columns\TextColumn::make('prioridade')->label('Prioridade')->badge()
-                    ->formatStateUsing(fn($s) => $s->getLabel())->color(fn($s) => $s->getColor()),
+                    ->formatStateUsing(fn($state) => $state->getLabel())->color(fn($state) => $state->getColor()),
                 Tables\Columns\TextColumn::make('status')->label('Status')->badge()
-                    ->formatStateUsing(fn($s) => $s->getLabel())->color(fn($s) => $s->getColor()),
+                    ->formatStateUsing(fn($state) => $state->getLabel())->color(fn($state) => $state->getColor()),
                 Tables\Columns\TextColumn::make('created_at')->label('Aberta em')->dateTime('d/m/Y H:i'),
             ])
             ->actions([

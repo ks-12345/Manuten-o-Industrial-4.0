@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\Auth;
 class OcorrenciasPorStatusChart extends ChartWidget
 {
     protected static ?string $heading = 'Ocorrências por Status';
-    protected static ?int    $sort    = 2;
+    protected static ?string $pollingInterval = '60s';
+
+    protected static bool $isLazy = true;
+
     protected static string  $color   = 'info';
 
     protected function getData(): array
