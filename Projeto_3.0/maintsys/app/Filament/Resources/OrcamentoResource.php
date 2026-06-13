@@ -19,6 +19,15 @@ class OrcamentoResource extends Resource
 
     // protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
+
+    // Adicione esta linha para mudar o texto do menu lateral:
+    protected static ?string $navigationLabel = 'Orçamento';
+    
+    // BÔNUS: Adicione estas duas linhas para arrumar os títulos dentro da página também:
+    protected static ?string $modelLabel = 'Orçamento';
+    protected static ?string $pluralModelLabel = 'Orçamentos';
+
 public static function form(Form $form): Form
 {
     return $form

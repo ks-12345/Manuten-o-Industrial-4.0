@@ -56,7 +56,7 @@ class CustosMensaisChart extends ChartWidget
                 [
                     'label'           => 'Preventivas (R$)',
                     'data'            => $custosPreventivas,
-                    'backgroundColor' => 'rgba(34,197,94,0.7)',
+                    'backgroundColor' => '#E53E3E', // Vermelho
                     'borderColor'     => '#22c55e',
                     'borderWidth'     => 2,
                     'borderRadius'    => 4,

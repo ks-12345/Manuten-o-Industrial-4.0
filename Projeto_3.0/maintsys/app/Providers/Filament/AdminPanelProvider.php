@@ -42,20 +42,30 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('painel')
-            ->login(Login::class)
-            ->colors([
-                'primary' => Color::Blue,
-                'danger'  => Color::Rose,
-                'warning' => Color::Amber,
-                'success' => Color::Green,
-                'info'    => Color::Sky,
-            ])
+            ->login(\App\Filament\Pages\Auth\CustomLogin::class)
+            // ->registration()
+->colors([
+    'primary' => '#A11D20', // Substitua pelo HEX exato desse vermelho
+    'danger'  => '#E11D48',
+    'warning' => '#FBBF24',
+    'success' => '#34D399',
+    'info'    => '#3B82F6',
+])
+->darkMode(false)
+
+            // ->topNavigation()
+            ->font('roboto')
             ->brandName('MaintSys 4.0')
-            ->brandLogo(asset('images/logo.png'))
+            ->brandLogo(asset('images/logo-claro.png'))            // ->brandLogo(asset('images/logo-claro.png')) // Logo que vai aparecer no TEMA CLARO
+            // ->darkModeBrandLogo(asset('images/logo-claro.png')) // Logo que vai aparecer no TEMA ESCURO
+            ->brandLogoHeight('3rem') // Opcional: Ajuste a altura se a logo ficar muito pequena
             ->favicon(asset('images/favicon.png'))
             ->darkMode(true)
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
+                NavigationGroup::make('Orc
+                amentos')
+                    ->icon('heroicon-o-cog-6-tooth'),
                 NavigationGroup::make('Cadastros')
                     ->icon('heroicon-o-folder'),
                 NavigationGroup::make('Operações')
@@ -121,6 +131,7 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+            
             
     }
     
