@@ -49,7 +49,8 @@ class InspecaoResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('ocorrencia.codigo')
                     ->label('Ocorrência')
-                    ->badge()->color('primary'),
+                    ->badge()
+                    ->color('primary'),
 
                 Tables\Columns\TextColumn::make('ocorrencia.maquina.nome')
                     ->label('Máquina')
@@ -74,6 +75,16 @@ class InspecaoResource extends Resource
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('danger')
                     ->falseColor('success'),
+
+                // NOVA COLUNA VISUAL: Mostra na listagem se a inspeção gerou uma corretiva
+                Tables\Columns\IconColumn::make('necessita_corretiva')
+                    ->label('Gerou Corretiva?')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-exclamation-triangle')
+                    ->falseIcon('heroicon-o-check-badge')
+                    ->trueColor('warning')
+                    ->falseColor('success')
+                    ->placeholder('Em andamento'),
             ])
             ->actions([
                 Tables\Actions\Action::make('executar')
@@ -87,11 +98,9 @@ class InspecaoResource extends Resource
 
     public static function getPages(): array
     {
-        // Removido o fluxo de criação manual: inspeção só pode ser iniciada via Ocorrência.
         return [
             'index' => Pages\ListInspecaos::route('/'),
             'executar' => Pages\ExecutarInspecao::route('/{record}/executar'),
         ];
     }
 }
-

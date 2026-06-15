@@ -12,7 +12,9 @@ class MtbfMttrWidget extends Widget
 {
     protected static string $view = 'filament.widgets.kpi.mtbf-mttr';
     protected static ?string $heading = 'Indicadores de Confiabilidade';
-    protected static ?int $sort = 4;
+protected static ?string $pollingInterval = '60s';
+
+    protected static bool $isLazy = true;
     protected int | string | array $columnSpan = 'full';
 
     public string $periodo = 'mes'; // mes | trimestre | semestre | ano

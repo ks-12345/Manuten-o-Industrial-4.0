@@ -4,6 +4,10 @@ namespace App\Observers;
 
 use App\Models\Historico;
 use App\Models\Preventiva;
+use App\Mail\AlertaManutencao;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use App\Models\User; 
 
 class PreventivaObserver
 {
@@ -20,6 +24,25 @@ class PreventivaObserver
             $preventiva->maquina->update([
                 'ultima_preventiva' => $preventiva->data_realizada,
             ]);
+        }
+    }
+    public function created(Preventiva $preventiva): void
+    {
+        try {
+            $preventiva->load(['maquina', 'tecnico']);
+
+            Mail::to('equipe.manutencao@empresa.com')->send(
+                new AlertaManutencao(
+                    codigoOrdemServico: (string) $preventiva->id,
+                    maquina: $preventiva->maquina?->nome ?? 'Não identificada',
+                    setor: $preventiva->maquina?->setor?->nome ?? 'Setor da Máquina',
+                    tecnico: $preventiva->tecnico?->name ?? 'Não designado',
+                    urgencia: 'Agenda Preventiva 🗓️',
+                    descricaoProblema: "Manutenção preventiva agendada/gerada. Periodicidade: " . ($preventiva->periodicidade?->value ?? 'Padrão')
+                )
+            );
+        } catch (\Exception $e) {
+            Log::error("Falha ao enviar e-mail de preventiva #{$preventiva->id}: " . $e->getMessage());
         }
     }
 }

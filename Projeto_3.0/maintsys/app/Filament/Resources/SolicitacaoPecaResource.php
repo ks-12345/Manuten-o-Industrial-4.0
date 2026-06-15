@@ -15,6 +15,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 
+
 class SolicitacaoPecaResource extends Resource
 {
     protected static ?string $model           = SolicitacaoPeca::class;
@@ -33,6 +34,7 @@ class SolicitacaoPecaResource extends Resource
     {
         return $table
             ->columns([
+                
 Tables\Columns\TextColumn::make('maquina.nome')
     ->label('Máquina')
     ->searchable()
@@ -49,11 +51,11 @@ Tables\Columns\TextColumn::make('maquina.nome')
                     ->badge()
                     ->color('info'),
 
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
-                    ->badge()
-                    ->formatStateUsing(fn($state) => $state->getLabel())
-                    ->color(fn($state) => $state->getColor()),
+Tables\Columns\TextColumn::make('status')
+    ->label('Status')
+    ->badge()
+    ->formatStateUsing(fn ($state) => $state->getLabel())
+    ->color(fn ($state) => $state->getColor()),
 
                 Tables\Columns\TextColumn::make('orcamentos_count')
                     ->label('Orçamentos')
@@ -78,6 +80,13 @@ Tables\Columns\TextColumn::make('maquina.nome')
                     ->options(StatusSolicitacaoPeca::options()),
             ])
             ->actions([
+                Tables\Actions\Action::make('orcamentos')
+    ->label('Ver Orçamentos')
+    ->icon('heroicon-o-currency-dollar')
+    ->color('warning')
+    ->url(fn (SolicitacaoPeca $record) =>
+        static::getUrl('view', ['record' => $record])
+    ),
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\Action::make('marcar_recebida')
                     ->label('Peça Recebida')
@@ -104,6 +113,7 @@ Tables\Columns\TextColumn::make('maquina.nome')
                             ->success()->title('Peça recebida registrada!')->send();
                     }),
             ]);
+            
     }
 
     public static function infolist(Infolist $infolist): Infolist
@@ -114,9 +124,18 @@ Tables\Columns\TextColumn::make('maquina.nome')
                 Infolists\Components\TextEntry::make('nome_peca')->label('Peça'),
                 Infolists\Components\TextEntry::make('quantidade')->label('Quantidade'),
                 Infolists\Components\TextEntry::make('referencia')->label('Referência')->placeholder('—'),
-                Infolists\Components\TextEntry::make('status')->label('Status')->badge()
-                    ->formatStateUsing(fn($s) => $s->getLabel())
-                    ->color(fn($s) => $s->getColor()),
+                Infolists\Components\TextEntry::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->getStateUsing(
+                        fn (SolicitacaoPeca $record): StatusSolicitacaoPeca => $record->status
+                    )
+                    ->formatStateUsing(
+                        fn (StatusSolicitacaoPeca $state): string => $state->getLabel()
+                    )
+                    ->color(
+                        fn (StatusSolicitacaoPeca $state): string => $state->getColor()
+                    ),
                 Infolists\Components\TextEntry::make('valor_total_aprovado')->label('Valor Aprovado')->money('BRL')->placeholder('—'),
                 Infolists\Components\TextEntry::make('descricao')->label('Descrição')->columnSpanFull()->placeholder('—'),
             ]),

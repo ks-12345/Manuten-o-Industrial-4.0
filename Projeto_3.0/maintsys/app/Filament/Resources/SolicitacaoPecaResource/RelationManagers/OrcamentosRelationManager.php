@@ -92,55 +92,84 @@ class OrcamentosRelationManager extends RelationManager
                     ->placeholder('—'),
             ])
 ->headerActions([
-    Tables\Actions\CreateAction::make()
-        ->label('Adicionar Orçamento')
+    Tables\Actions\Action::make('cadastrar_orcamentos')
+        ->label('Cadastrar Orçamentos')
+        ->icon('heroicon-o-plus-circle')
+        ->color('primary')
         ->visible(fn () => $this->ownerRecord->totalOrcamentos() < 3)
-        ->before(function () {
-            if ($this->ownerRecord->totalOrcamentos() >= 3) {
-                Notification::make()
-                    ->danger()
-                    ->title('Máximo de 3 orçamentos por solicitação.')
-                    ->send();
 
-                $this->halt();
+        ->form([
+            Forms\Components\Repeater::make('orcamentos')
+                ->label('Orçamentos')
+                ->schema([
+                    Forms\Components\TextInput::make('empresa')
+                        ->label('Empresa / Fornecedor')
+                        ->required(),
+
+                    Forms\Components\TextInput::make('contato')
+                        ->label('Contato'),
+
+                    Forms\Components\TextInput::make('valor')
+                        ->label('Valor')
+                        ->numeric()
+                        ->prefix('R$')
+                        ->required(),
+
+                    Forms\Components\TextInput::make('prazo_entrega')
+                        ->label('Prazo de Entrega')
+                        ->numeric()
+                        ->suffix('dias'),
+
+                    Forms\Components\Textarea::make('observacoes')
+                        ->label('Observações')
+                        ->rows(2),
+
+                    Forms\Components\FileUpload::make('arquivo')
+                        ->label('PDF do Orçamento')
+                        ->disk('s3')
+                        ->directory('orcamentos')
+                        ->acceptedFileTypes(['application/pdf']),
+                ])
+                ->minItems(1)
+                ->maxItems(
+                    fn () => 3 - $this->ownerRecord->totalOrcamentos()
+                )
+                ->defaultItems(1)
+                ->addActionLabel('Adicionar outro orçamento'),
+        ])
+
+        ->action(function (array $data): void {
+            foreach ($data['orcamentos'] as $orcamento) {
+                $this->ownerRecord->orcamentos()->create([
+                    'empresa'       => $orcamento['empresa'],
+                    'contato'       => $orcamento['contato'] ?? null,
+                    'valor'         => $orcamento['valor'],
+                    'prazo_entrega' => $orcamento['prazo_entrega'] ?? null,
+                    'observacoes'   => $orcamento['observacoes'] ?? null,
+                    'arquivo'       => $orcamento['arquivo'] ?? null,
+                ]);
             }
+
+            Notification::make()
+                ->success()
+                ->title('Orçamentos cadastrados com sucesso!')
+                ->send();
         }),
 ])
-            ->actions([
-                Tables\Actions\EditAction::make()
-                    ->visible(fn ($record) => ! $record->aprovado),
 
-                Tables\Actions\Action::make('aprovar')
-                    ->label('Aprovar')
-                    ->icon('heroicon-o-check-badge')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->modalDescription('Este orçamento será aprovado e os demais serão reprovados automaticamente.')
-                    ->visible(
-                        fn ($record) =>! $record->aprovado
-                        && $record->solicitacaoPeca->status !== StatusSolicitacaoPeca::PecaRecebida
-                        && Auth::user()->hasPermissionTo('orcamentos.aprovar')
-)
-                    ->action(function (Orcamento $record) {
-                        $record->aprovar(Auth::user());
+->actions([
+    Tables\Actions\EditAction::make()
+        ->visible(fn ($record) => ! $record->aprovado),
 
-                        // Atualizar status da solicitação para aguardando peça
-                        $record->solicitacaoPeca->update([
-                            'status' => StatusSolicitacaoPeca::AguardandoPeca->value,
-                        ]);
+    Tables\Actions\Action::make('aprovar')
+        ->label('Aprovar')
+        ->icon('heroicon-o-check-badge')
+        ->color('success')
+        ->requiresConfirmation()
+        ->visible(fn ($record) => ! $record->aprovado)
+        ->action(fn (Orcamento $record) => $record->aprovar(Auth::user())),
 
-                        // Registrar no histórico
-                        \App\Models\Historico::registrar(
-                            $record->solicitacaoPeca->inspecao->ocorrencia,
-                            \App\Models\Historico::ACAO_ORCAMENTO_APROVADO,
-                            "Orçamento aprovado: {$record->empresa} — R$ " . number_format($record->valor, 2, ',', '.'),
-                        );
-
-                        Notification::make()->success()->title('Orçamento aprovado!')->send();
-                    }),
-
-                Tables\Actions\DeleteAction::make()
-                    ->visible(fn($record) => !$record->aprovado),
-            ]);
-    }
-}
+    Tables\Actions\DeleteAction::make()
+        ->visible(fn ($record) => ! $record->aprovado),
+]);
+    }}

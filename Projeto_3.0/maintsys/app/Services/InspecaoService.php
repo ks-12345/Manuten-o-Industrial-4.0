@@ -95,6 +95,17 @@ class InspecaoService
             throw ValidationException::withMessages([
                 'inspecao' => 'Esta inspeção já foi finalizada.',
             ]);
+            // Dentro da lógica de finalizar a Inspeção:
+if ($inspecao->necessita_corretiva) {
+    \App\Models\Corretiva::create([
+        'maquina_id' => $inspecao->maquina_id,
+        'ocorrencia_id' => $inspecao->ocorrencia_id,
+        'status' => 'pendente', // <-- Ela nasce sem técnico e pendente
+        'tecnico_id' => null,   // Sem dono por enquanto
+        'descricao_falha' => 'Gerada automaticamente via Inspeção #' . $inspecao->id,
+        'inicio' => null,       // Só começa quando alguém assumir
+    ]);
+}
         }
 
         return DB::transaction(function () use ($inspecao, $diagnostico, $necessitaPeca, $tecnico, $observacoes) {

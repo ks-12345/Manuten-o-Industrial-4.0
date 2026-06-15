@@ -20,6 +20,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Filament\Tables\Actions\Action;
 
 class CorretivaResource extends Resource
 {
@@ -119,64 +120,65 @@ class CorretivaResource extends Resource
     }
 
     public static function table(Table $table): Table
-    {
-        return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('maquina.nome')
-                    ->label('Máquina')
-                    ->searchable()
-                    ->description(fn($record) => $record->maquina?->setor?->nome),
+{
+    return $table
+        ->columns([
+            Tables\Columns\TextColumn::make('maquina.nome')
+                ->label('Máquina')
+                ->searchable(),
 
-                Tables\Columns\TextColumn::make('tipo')
-                    ->label('Tipo')
-                    ->badge()
-                    ->formatStateUsing(fn($state) => $state->getLabel())
-                    ->color(fn($state) => match($state) {
-                        TipoCorretiva::OrigemOcorrencia => 'warning',
-                        TipoCorretiva::Direta           => 'info',
-                    }),
+            Tables\Columns\TextColumn::make('tipo')
+                ->label('Tipo'),
 
-                Tables\Columns\TextColumn::make('tecnico.name')
-                    ->label('Técnico'),
+            // Modifique a coluna do técnico para mostrar um aviso se estiver sem dono
+            Tables\Columns\TextColumn::make('tecnico.name')
+                ->label('Técnico')
+                ->placeholder('Aguardando técnico...'), 
 
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
-                    ->badge()
-                    ->color(fn($state) => $state === 'finalizada' ? 'success' : 'warning')
-                    ->formatStateUsing(fn($state) => $state === 'finalizada' ? 'Finalizada' : 'Em Andamento'),
+            Tables\Columns\TextColumn::make('status')
+                ->badge()
+                ->color(fn (string $state): string => match ($state) {
+                    'pendente' => 'danger',
+                    'em_andamento' => 'warning',
+                    'finalizada' => 'success',
+                    default => 'gray',
+                }),
 
-                Tables\Columns\TextColumn::make('inicio')
-                    ->label('Iniciada em')
-                    ->dateTime('d/m/Y H:i'),
+            Tables\Columns\TextColumn::make('inicio')
+                ->label('Iniciada em')
+                ->dateTime('d/m/Y H:i')
+                ->placeholder('Não iniciada'),
+                
+            // ... suas outras colunas (Tempo, Custo Total, etc)
+        ])
+        ->actions([
+            // BOTÃO MÁGICO PARA ASSUMIR A MANUTENÇÃO:
+            Action::make('assumirCorretiva')
+                ->label('Assumir Corretiva')
+                ->icon('heroicon-o-wrench-screwdriver')
+                ->color('success')
+                ->requiresConfirmation()
+                ->modalHeading('Deseja assumir esta manutenção?')
+                ->modalDescription('Você será registrado como o técnico responsável e a ordem mudará para "Em Andamento" agora.')
+                ->visible(fn ($record) => $record->status === 'pendente') // Só aparece se estiver pendente!
+                ->action(function ($record) {
+                    $record->update([
+                        'tecnico_id' => Auth::id(),
+                        'status' => 'em_andamento',
+                        'inicio' => now(),
+                    ]);
 
-                Tables\Columns\TextColumn::make('tempo_reparo')
-                    ->label('Tempo')
-                    ->formatStateUsing(fn($state) => $state ? gmdate('H\h i\m', $state * 60) : '—'),
+                    Notification::make()
+                        ->title('Manutenção assumida com sucesso!')
+                        ->body('Você já pode iniciar os trabalhos.')
+                        ->success()
+                        ->send();
+                }),
 
-                Tables\Columns\TextColumn::make('custo_total')
-                    ->label('Custo Total')
-                    ->getStateUsing(fn($record) => 'R$ ' . number_format($record->custoTotal(), 2, ',', '.')),
-            ])
-            ->defaultSort('created_at', 'desc')
-            ->filters([
-                Tables\Filters\SelectFilter::make('tipo')->label('Tipo')->options(TipoCorretiva::options()),
-                Tables\Filters\SelectFilter::make('status')->label('Status')->options([
-                    'em_andamento' => 'Em Andamento',
-                    'finalizada'   => 'Finalizada',
-                ]),
-            ])
-            ->actions([
-                Tables\Actions\Action::make('executar')
-                    ->label('Executar')
-                    ->icon('heroicon-o-play')
-                    ->color('primary')
-                    ->url(fn($record) => Pages\ExecutarCorretiva::getUrl(['record' => $record]))
-                    ->visible(fn($record) => !$record->estaFinalizada()),
-
-                Tables\Actions\EditAction::make()
-                    ->visible(fn($record) => Auth::user()->hasRole('admin')),
-            ]);
-    }
+            Tables\Actions\EditAction::make()
+                ->visible(fn ($record) => $record->status === 'em_andamento'), // Só edita se já tiver dono
+        ]);
+}
 
     public static function getPages(): array
     {

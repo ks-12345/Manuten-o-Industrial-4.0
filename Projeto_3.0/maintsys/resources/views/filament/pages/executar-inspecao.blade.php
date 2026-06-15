@@ -97,6 +97,38 @@
                 </x-filament::section>
             @endif
 
+            {{-- PERGUNTA DA CORRETIVA: Movida para a etapa final para não sumir --}}
+            <x-filament::section>
+                <x-slot name="heading">🛠️ Encaminhamento de Manutenção</x-slot>
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+                    <h3 class="text-sm font-medium text-gray-950 dark:text-white flex items-center gap-2 mb-4">
+                        ⚠️ A máquina necessita de manutenção corretiva imediata?
+                    </h3>
+                    
+                    <div class="flex items-center gap-4">
+                        <button 
+                            type="button" 
+                            wire:click="$set('necessitaCorretiva', true)"
+                            class="px-4 py-2 text-sm font-semibold rounded-lg border transition-colors {{ $necessitaCorretiva ? 'bg-danger-600 text-white border-danger-600 shadow-sm' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-600' }}"
+                        >
+                            Sim, abrir corretiva pendente
+                        </button>
+
+                        <button 
+                            type="button" 
+                            wire:click="$set('necessitaCorretiva', false)"
+                            class="px-4 py-2 text-sm font-semibold rounded-lg border transition-colors {{ !$necessitaCorretiva ? 'bg-success-600 text-white border-success-600 shadow-sm' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-600' }}"
+                        >
+                            Não precisa
+                        </button>
+                    </div>
+                    
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                        * Ao marcar "Sim", o sistema vai gerar uma ordem de serviço na lista de corretivas pendentes assim que você finalizar a inspeção.
+                    </p>
+                </div>
+            </x-filament::section>
+
             <div class="flex gap-3">
                 <x-filament::button wire:click="salvarFinalizar" color="success" icon="heroicon-o-check">
                     Finalizar Inspeção

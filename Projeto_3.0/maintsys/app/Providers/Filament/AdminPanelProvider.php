@@ -43,30 +43,25 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('painel')
             ->login(\App\Filament\Pages\Auth\CustomLogin::class)
-            // ->registration()
-->colors([
-    'primary' => '#A11D20', // Substitua pelo HEX exato desse vermelho
-    'danger'  => '#E11D48',
-    'warning' => '#FBBF24',
-    'success' => '#34D399',
-    'info'    => '#3B82F6',
-])
-->darkMode(false)
-
-            // ->topNavigation()
-            ->font('roboto')
+            ->colors([ //Colores que aparece no cards
+                'primary' => '#A11D20', 
+                'danger'  => '#E11D48',
+                'warning' => '#FBBF24',
+                'success' => '#34D399',
+                'info'    => '#3B82F6',
+        ])
+            ->darkMode(false)
+            ->font('roboto') // Fonte da letras
             ->brandName('MaintSys 4.0')
-            ->brandLogo(asset('images/logo-claro.png'))            // ->brandLogo(asset('images/logo-claro.png')) // Logo que vai aparecer no TEMA CLARO
-            // ->darkModeBrandLogo(asset('images/logo-claro.png')) // Logo que vai aparecer no TEMA ESCURO
-            ->brandLogoHeight('3rem') // Opcional: Ajuste a altura se a logo ficar muito pequena
-            ->favicon(asset('images/favicon.png'))
-            ->darkMode(true)
+            ->brandLogo(asset('images/logo32.png')) // Logo que vai aparecer na navbar
+            ->brandLogoHeight('5rem') // tamanho da logo em REM (unidade de medida usada no css)
+            ->favicon(asset('images/favicon.png')) // Icon da aba 
+            // ->darkMode(true)
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
-                NavigationGroup::make('Orc
-                amentos')
-                    ->icon('heroicon-o-cog-6-tooth'),
-                NavigationGroup::make('Cadastros')
+                NavigationGroup::make('Orcamentos') // As opçoes da navbar lateral 
+                    ->icon('heroicon-o-cog-6-tooth'),// Icons das opçoes da navbar lateral 
+                NavigationGroup::make('Cadastros') 
                     ->icon('heroicon-o-folder'),
                 NavigationGroup::make('Operações')
                     ->icon('heroicon-o-wrench-screwdriver'),
@@ -78,7 +73,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-cog-6-tooth'),
             ])
             ->resources([
-                UserResource::class,
+                UserResource::class, 
                 SetorResource::class,
                 MaquinaResource::class,
                 OcorrenciaResource::class,
@@ -89,17 +84,17 @@ class AdminPanelProvider extends PanelProvider
                 PreventivaResource::class,
                 ChecklistModeloResource::class,
             ])
-// Adicionar às pages:
-->pages([
-    MapaMaquinas::class,
-    \App\Filament\Pages\MapaMaquinas::class,
-    \App\Filament\Pages\Indicadores::class,
-    \App\Filament\Pages\RelatorioManutencao::class,
-    \App\Filament\Pages\Dashboard::class,
-])
+
+            ->pages([ // as Paginas 
+                MapaMaquinas::class,
+                \App\Filament\Pages\MapaMaquinas::class,
+                \App\Filament\Pages\Indicadores::class,
+                \App\Filament\Pages\RelatorioManutencao::class,
+                \App\Filament\Pages\Dashboard::class,
+            ])
 
 
-->widgets([
+->widgets([ // Os Indicadaores do Dashboard
     StatsAdminWidget::class,
     StatsProfessorWidget::class,
     StatsTecnicoWidget::class,
@@ -116,7 +111,7 @@ class AdminPanelProvider extends PanelProvider
     \App\Filament\Widgets\Charts\CustosPorMaquinaChart::class,
     \App\Filament\Widgets\Charts\PreventivasRealizadasChart::class,
 ])
-            ->middleware([
+            ->middleware([ //Segurança do sistema
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,

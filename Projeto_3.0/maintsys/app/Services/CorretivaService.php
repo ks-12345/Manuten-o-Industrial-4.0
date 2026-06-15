@@ -13,6 +13,9 @@ use App\Models\Ocorrencia;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Mail\AlertaManutencao;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class CorretivaService
 {
@@ -24,9 +27,36 @@ class CorretivaService
     /**
      * Criar corretiva de qualquer tipo.
      */
+/**
+     * Criar corretiva de qualquer tipo.
+     */
     public function criar(CorretivaDTO $dto, User $tecnico): Corretiva
     {
-        return DB::transaction(function () use ($dto, $tecnico) {
+        // 1. VALIDAÇÃO: Só permite criar se a ocorrência de origem tiver uma inspeção finalizada
+        if ($dto->ocorrenciaId) {
+            
+            // Busca se existe uma inspeção para esta ocorrência que esteja finalizada/concluída
+            // (Ajuste o valor 'finalizada' ou 'concluida' de acordo com o seu Enum/Banco)
+            $inspecaoFinalizada = \App\Models\Inspecao::where('ocorrencia_id', $dto->ocorrenciaId)
+                ->where('status', 'finalizada') // ou 'concluida'
+                ->exists();
+
+            if (!$inspecaoFinalizada) {
+                throw ValidationException::withMessages([
+                    'ocorrencia_id' => 'Não é possível iniciar uma manutenção corretiva sem que a inspeção prévia desta ocorrência esteja finalizada.',
+                ]);
+            }
+        } else {
+            // Caso seu sistema permita criar corretiva avulsa (sem ocorrência), 
+            // e você queira proibir ISSO também, descomente as linhas abaixo:
+            // 
+            throw ValidationException::withMessages([
+                'corretiva' => 'Uma corretiva só pode ser criada a partir de uma ocorrência com inspeção concluída.',
+            ]);
+        }
+
+        // 2. Executa a transação no banco de dados (Seu código original seguro)
+        $corretiva = DB::transaction(function () use ($dto, $tecnico) {
             $corretiva = Corretiva::create(array_merge($dto->toArray(), [
                 'status' => 'em_andamento',
                 'inicio' => now(),
@@ -55,6 +85,26 @@ class CorretivaService
 
             return $corretiva;
         });
+
+        // 3. Disparo do E-mail (Mantido idêntico)
+        try {
+            $corretiva->load(['maquina', 'maquina.setor']);
+
+            Mail::to('equipe.manutencao@empresa.com')->send(
+                new AlertaManutencao(
+                    codigoOrdemServico: (string) $corretiva->id,
+                    maquina: $corretiva->maquina?->nome ?? 'Não identificada',
+                    setor: $corretiva->maquina?->setor?->nome ?? 'Setor da Máquina',
+                    tecnico: $tecnico->name ?? 'Técnico de Plantão',
+                    urgencia: '🚨 CRÍTICO - Corretiva Solicitada',
+                    descricaoProblema: $corretiva->descricao_falha ?? 'Manutenção Corretiva Aberta.'
+                )
+            );
+        } catch (\Exception $e) {
+            Log::error("Falha ao enviar e-mail de corretiva #{$corretiva->id}: " . $e->getMessage());
+        }
+
+        return $corretiva;
     }
 
     /**

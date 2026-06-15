@@ -17,46 +17,62 @@ class OrcamentoResource extends Resource
 {
     protected static ?string $model = Orcamento::class;
 
-    // protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
     protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
+    protected static bool $shouldRegisterNavigation = false;
+    // protected static ?string $navigationLabel = 'Orçamento';
 
-    // Adicione esta linha para mudar o texto do menu lateral:
-    protected static ?string $navigationLabel = 'Orçamento';
-    
-    // BÔNUS: Adicione estas duas linhas para arrumar os títulos dentro da página também:
     protected static ?string $modelLabel = 'Orçamento';
+
     protected static ?string $pluralModelLabel = 'Orçamentos';
 
-public static function form(Form $form): Form
-{
-    return $form
-        ->schema([
-            Forms\Components\Select::make('solicitacao_peca_id')
-                ->relationship('solicitacaoPeca', 'id')
-                ->required(),
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+Forms\Components\Select::make('solicitacao_peca_id')
+    ->relationship('solicitacaoPeca', 'nome_peca')
+    ->preload()
+    ->searchable()
+    ->required(),
+                Forms\Components\TextInput::make('empresa')
+                    ->required(),
 
-            Forms\Components\TextInput::make('empresa')
-                ->required(),
+                Forms\Components\TextInput::make('contato'),
 
-            Forms\Components\TextInput::make('contato'),
+                Forms\Components\TextInput::make('valor')
+                    ->numeric()
+                    ->required(),
 
-            Forms\Components\TextInput::make('valor')
-                ->numeric()
-                ->required(),
+                Forms\Components\TextInput::make('prazo_entrega')
+                    ->label('Prazo de Entrega (em dias)')
+                    ->numeric()
+                    ->integer()
+                    ->placeholder('Ex: 15')
+                    ->suffix('dias'),
 
-            Forms\Components\DatePicker::make('prazo_entrega'),
-
-            Forms\Components\Textarea::make('observacoes'),
-        ]);
-}
+                Forms\Components\Textarea::make('observacoes'),
+            ]);
+    }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                //
-            ])
+    Tables\Columns\TextColumn::make('solicitacaoPeca.inspecao.ocorrencia.codigo')
+        ->label('OS'),
+
+    Tables\Columns\TextColumn::make('solicitacaoPeca.nome_peca')
+        ->label('Peça'),
+
+    Tables\Columns\TextColumn::make('empresa')
+        ->label('Empresa'),
+
+    Tables\Columns\TextColumn::make('valor')
+        ->money('BRL'),
+
+    Tables\Columns\IconColumn::make('aprovado')
+        ->boolean(),
+])
             ->filters([
                 //
             ])
@@ -86,3 +102,4 @@ public static function form(Form $form): Form
         ];
     }
 }
+
