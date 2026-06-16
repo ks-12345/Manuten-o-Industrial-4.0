@@ -12,8 +12,6 @@ use App\Models\User;
 use App\Services\CorretivaService;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -41,8 +39,12 @@ class CorretivaResource extends Resource
         $query = parent::getEloquentQuery()->with(['maquina.setor', 'tecnico', 'ocorrencia']);
         $user  = Auth::user();
 
-        if (!$user->hasRole('admin')) {
-            $query->where('tecnico_id', $user->id);
+        if (! $user->hasRole('admin')) {
+            // Técnico vê suas próprias corretivas E as pendentes sem responsável
+            $query->where(function ($q) use ($user) {
+                $q->where('tecnico_id', $user->id)
+                  ->orWhereNull('tecnico_id');
+            });
         }
 
         return $query;
@@ -54,7 +56,7 @@ class CorretivaResource extends Resource
             Forms\Components\Section::make('Informações Básicas')->columns(2)->schema([
                 Forms\Components\Select::make('maquina_id')
                     ->label('Máquina')
-                    ->options(Maquina::with('setor')->get()->mapWithKeys(fn($m) => [$m->id => "{$m->nome} — {$m->setor?->nome}"]))
+                    ->options(Maquina::with('setor')->get()->mapWithKeys(fn ($m) => [$m->id => "{$m->nome} — {$m->setor?->nome}"]))
                     ->searchable()
                     ->required()
                     ->live(),
@@ -72,10 +74,9 @@ class CorretivaResource extends Resource
                     ->default(Auth::id())
                     ->required(),
 
-                // Mostrar ocorrência apenas se tipo = origem_ocorrencia
                 Forms\Components\Select::make('ocorrencia_id')
                     ->label('Ocorrência Vinculada')
-                    ->options(fn(Forms\Get $get) =>
+                    ->options(fn (Forms\Get $get) =>
                         Ocorrencia::where('maquina_id', $get('maquina_id'))
                             ->whereIn('status', [
                                 StatusOcorrencia::Corretiva->value,
@@ -84,7 +85,7 @@ class CorretivaResource extends Resource
                             ->pluck('titulo', 'id'))
                     ->searchable()
                     ->nullable()
-                    ->visible(fn(Forms\Get $get) => $get('tipo') === TipoCorretiva::OrigemOcorrencia->value),
+                    ->visible(fn (Forms\Get $get) => $get('tipo') === TipoCorretiva::OrigemOcorrencia->value),
 
                 Forms\Components\Textarea::make('problema')
                     ->label('Descrição do Problema')
@@ -120,65 +121,95 @@ class CorretivaResource extends Resource
     }
 
     public static function table(Table $table): Table
-{
-    return $table
-        ->columns([
-            Tables\Columns\TextColumn::make('maquina.nome')
-                ->label('Máquina')
-                ->searchable(),
+    {
+        return $table
+            ->columns([
+                Tables\Columns\TextColumn::make('maquina.nome')
+                    ->label('Máquina')
+                    ->searchable(),
 
-            Tables\Columns\TextColumn::make('tipo')
-                ->label('Tipo'),
+                Tables\Columns\TextColumn::make('tipo')
+                    ->label('Tipo')
+                    ->formatStateUsing(fn ($state) => $state instanceof TipoCorretiva ? $state->getLabel() : $state),
 
-            // Modifique a coluna do técnico para mostrar um aviso se estiver sem dono
-            Tables\Columns\TextColumn::make('tecnico.name')
-                ->label('Técnico')
-                ->placeholder('Aguardando técnico...'), 
+                Tables\Columns\TextColumn::make('tecnico.name')
+                    ->label('Técnico')
+                    ->placeholder('Aguardando técnico...'),
 
-            Tables\Columns\TextColumn::make('status')
-                ->badge()
-                ->color(fn (string $state): string => match ($state) {
-                    'pendente' => 'danger',
-                    'em_andamento' => 'warning',
-                    'finalizada' => 'success',
-                    default => 'gray',
-                }),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'pendente'     => 'danger',
+                        'em_andamento' => 'warning',
+                        'finalizada'   => 'success',
+                        default        => 'gray',
+                    }),
 
-            Tables\Columns\TextColumn::make('inicio')
-                ->label('Iniciada em')
-                ->dateTime('d/m/Y H:i')
-                ->placeholder('Não iniciada'),
-                
-            // ... suas outras colunas (Tempo, Custo Total, etc)
-        ])
-        ->actions([
-            // BOTÃO MÁGICO PARA ASSUMIR A MANUTENÇÃO:
-            Action::make('assumirCorretiva')
-                ->label('Assumir Corretiva')
-                ->icon('heroicon-o-wrench-screwdriver')
-                ->color('success')
-                ->requiresConfirmation()
-                ->modalHeading('Deseja assumir esta manutenção?')
-                ->modalDescription('Você será registrado como o técnico responsável e a ordem mudará para "Em Andamento" agora.')
-                ->visible(fn ($record) => $record->status === 'pendente') // Só aparece se estiver pendente!
-                ->action(function ($record) {
-                    $record->update([
-                        'tecnico_id' => Auth::id(),
-                        'status' => 'em_andamento',
-                        'inicio' => now(),
-                    ]);
+                Tables\Columns\TextColumn::make('inicio')
+                    ->label('Iniciada em')
+                    ->dateTime('d/m/Y H:i')
+                    ->placeholder('Não iniciada'),
 
-                    Notification::make()
-                        ->title('Manutenção assumida com sucesso!')
-                        ->body('Você já pode iniciar os trabalhos.')
-                        ->success()
-                        ->send();
-                }),
+                Tables\Columns\TextColumn::make('ocorrencia.codigo')
+                    ->label('OS')
+                    ->placeholder('—')
+                    ->badge()
+                    ->color('primary'),
+            ])
+            ->defaultSort('created_at', 'desc')
+            ->actions([
+                // ── 1. ASSUMIR: aparece para corretivas pendentes sem técnico ──
+                Action::make('assumirCorretiva')
+                    ->label('Assumir')
+                    ->icon('heroicon-o-hand-raised')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Deseja assumir esta manutenção?')
+                    ->modalDescription('Você será registrado como técnico responsável e a ordem mudará para "Em Andamento".')
+                    ->visible(fn (Corretiva $record) =>
+                        $record->status === 'pendente'
+                        && $record->tecnico_id === null
+                    )
+                    ->action(function (Corretiva $record) {
+                        $record->update([
+                            'tecnico_id' => Auth::id(),
+                            'status'     => 'em_andamento',
+                            'inicio'     => now(),
+                        ]);
 
-            Tables\Actions\EditAction::make()
-                ->visible(fn ($record) => $record->status === 'em_andamento'), // Só edita se já tiver dono
-        ]);
-}
+                        // Atualiza status da máquina para manutenção
+                        $record->maquina?->update([
+                            'status' => \App\Enums\StatusMaquina::Manutencao->value,
+                        ]);
+
+                        Notification::make()
+                            ->success()
+                            ->title('Manutenção assumida!')
+                            ->body('Clique em "Executar" para iniciar os trabalhos.')
+                            ->send();
+                    }),
+
+                // ── 2. EXECUTAR: aparece para corretivas em andamento do próprio técnico ──
+                Action::make('executar')
+                    ->label('Executar')
+                    ->icon('heroicon-o-play')
+                    ->color('primary')
+                    ->url(fn (Corretiva $record) =>
+                        static::getUrl('executar', ['record' => $record])
+                    )
+                    ->visible(fn (Corretiva $record) =>
+                        $record->status === 'em_andamento'
+                        && ($record->tecnico_id === Auth::id() || Auth::user()->hasRole('admin'))
+                    ),
+
+                // ── 3. EDITAR: só para admin ou em casos especiais ──
+                Tables\Actions\EditAction::make()
+                    ->visible(fn (Corretiva $record) =>
+                        $record->status !== 'finalizada'
+                        && Auth::user()->hasRole('admin')
+                    ),
+            ]);
+    }
 
     public static function getPages(): array
     {

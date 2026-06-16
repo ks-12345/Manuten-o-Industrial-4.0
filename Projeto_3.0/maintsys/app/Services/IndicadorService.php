@@ -1,4 +1,4 @@
-
+<?php
 
 namespace App\Services;
 
@@ -92,12 +92,14 @@ class IndicadorService
         $mtbf = $this->calcularMTBF($maquinaId, $inicio, $fim);
         $mttr = $this->calcularMTTR($maquinaId, $inicio, $fim);
 
-        if ($mtbf + $mttr === 0) {
-            return 100.0;
-        }
+ $denominador = $mtbf + $mttr;
 
-        return round($mtbf / ($mtbf + $mttr) * 100, 2);
-    }
+if ($denominador <= 0) {
+    return 100.0;
+}
+
+return round(($mtbf / $denominador) * 100, 2);
+}
 
     /**
      * Quantidade de falhas por máquina no período.

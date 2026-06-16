@@ -15,7 +15,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
 
-
 class SolicitacaoPecaResource extends Resource
 {
     protected static ?string $model           = SolicitacaoPeca::class;
@@ -34,13 +33,10 @@ class SolicitacaoPecaResource extends Resource
     {
         return $table
             ->columns([
-                
-Tables\Columns\TextColumn::make('maquina.nome')
-    ->label('Máquina')
-    ->searchable()
-    ->description(fn (SolicitacaoPeca $record) =>
-        $record->inspecao?->ocorrencia?->codigo
-    ),
+                Tables\Columns\TextColumn::make('maquina.nome')
+                    ->label('Máquina')
+                    ->searchable()
+                    ->description(fn (SolicitacaoPeca $record) => $record->inspecao?->ocorrencia?->codigo),
 
                 Tables\Columns\TextColumn::make('nome_peca')
                     ->label('Peça Solicitada')
@@ -51,11 +47,11 @@ Tables\Columns\TextColumn::make('maquina.nome')
                     ->badge()
                     ->color('info'),
 
-Tables\Columns\TextColumn::make('status')
-    ->label('Status')
-    ->badge()
-    ->formatStateUsing(fn ($state) => $state->getLabel())
-    ->color(fn ($state) => $state->getColor()),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => $state->getLabel())
+                    ->color(fn ($state) => $state->getColor()),
 
                 Tables\Columns\TextColumn::make('orcamentos_count')
                     ->label('Orçamentos')
@@ -80,28 +76,40 @@ Tables\Columns\TextColumn::make('status')
                     ->options(StatusSolicitacaoPeca::options()),
             ])
             ->actions([
+                // Bug 4 corrigido: só aparece "Ver Orçamentos" se a solicitação tiver orçamentos
                 Tables\Actions\Action::make('orcamentos')
-    ->label('Ver Orçamentos')
-    ->icon('heroicon-o-currency-dollar')
-    ->color('warning')
-    ->url(fn (SolicitacaoPeca $record) =>
-        static::getUrl('view', ['record' => $record])
-    ),
+                    ->label('Ver Orçamentos')
+                    ->icon('heroicon-o-currency-dollar')
+                    ->color('warning')
+                    ->visible(fn (SolicitacaoPeca $record) => ($record->orcamentos_count ?? 0) > 0)
+                    ->url(fn (SolicitacaoPeca $record) =>
+                        static::getUrl('view', ['record' => $record])
+                    ),
+
                 Tables\Actions\ViewAction::make(),
+
                 Tables\Actions\Action::make('marcar_recebida')
                     ->label('Peça Recebida')
                     ->icon('heroicon-o-check-badge')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn (SolicitacaoPeca $record) =>
-    $record->status === StatusSolicitacaoPeca::AguardandoPeca
-)
-                    ->action(function ($record) {
+                    ->visible(
+                        fn (SolicitacaoPeca $record) =>
+                        $record->status === StatusSolicitacaoPeca::AguardandoPeca
+                    )
+                ->action(function ($record) {
                         $record->update([
-                            'status'          => StatusSolicitacaoPeca::PecaRecebida->value,
-                            'peca_recebida_em'=> now(),
+                            'status'           => StatusSolicitacaoPeca::PecaRecebida->value,
+                            'peca_recebida_em' => now(),
                         ]);
-                        // Atualizar status da ocorrência para EmCorretiva
+
+                        $record->inspecao
+                            ?->ocorrencia
+                            ?->corretiva()
+                            ->update([
+                                'status' => 'pendente',
+                            ]);
+
                         if ($record->inspecao?->ocorrencia) {
                             app(\App\Services\OcorrenciaService::class)->transicionarStatus(
                                 $record->inspecao->ocorrencia,
@@ -109,11 +117,13 @@ Tables\Columns\TextColumn::make('status')
                                 Auth::user()
                             );
                         }
+
                         \Filament\Notifications\Notification::make()
-                            ->success()->title('Peça recebida registrada!')->send();
+                            ->success()
+                            ->title('Peça recebida registrada!')
+                            ->send();
                     }),
             ]);
-            
     }
 
     public static function infolist(Infolist $infolist): Infolist
@@ -136,8 +146,14 @@ Tables\Columns\TextColumn::make('status')
                     ->color(
                         fn (StatusSolicitacaoPeca $state): string => $state->getColor()
                     ),
-                Infolists\Components\TextEntry::make('valor_total_aprovado')->label('Valor Aprovado')->money('BRL')->placeholder('—'),
-                Infolists\Components\TextEntry::make('descricao')->label('Descrição')->columnSpanFull()->placeholder('—'),
+                Infolists\Components\TextEntry::make('valor_total_aprovado')
+                    ->label('Valor Aprovado')
+                    ->money('BRL')
+                    ->placeholder('—'),
+                Infolists\Components\TextEntry::make('descricao')
+                    ->label('Descrição')
+                    ->columnSpanFull()
+                    ->placeholder('—'),
             ]),
         ]);
     }

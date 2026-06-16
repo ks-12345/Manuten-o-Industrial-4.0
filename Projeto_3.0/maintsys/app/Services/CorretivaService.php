@@ -24,49 +24,32 @@ class CorretivaService
         private readonly OcorrenciaService $ocorrenciaService
     ) {}
 
-    /**
-     * Criar corretiva de qualquer tipo.
-     */
-/**
-     * Criar corretiva de qualquer tipo.
-     */
     public function criar(CorretivaDTO $dto, User $tecnico): Corretiva
     {
-        // 1. VALIDAÇÃO: Só permite criar se a ocorrência de origem tiver uma inspeção finalizada
+        // Validação: corretiva originada de ocorrência exige inspeção finalizada.
+        // Corretiva Direta (avulsa) não passa por essa regra.
         if ($dto->ocorrenciaId) {
-            
-            // Busca se existe uma inspeção para esta ocorrência que esteja finalizada/concluída
-            // (Ajuste o valor 'finalizada' ou 'concluida' de acordo com o seu Enum/Banco)
             $inspecaoFinalizada = \App\Models\Inspecao::where('ocorrencia_id', $dto->ocorrenciaId)
-                ->where('status', 'finalizada') // ou 'concluida'
+                ->where('status', 'finalizada')
                 ->exists();
 
-            if (!$inspecaoFinalizada) {
+            if (! $inspecaoFinalizada) {
                 throw ValidationException::withMessages([
                     'ocorrencia_id' => 'Não é possível iniciar uma manutenção corretiva sem que a inspeção prévia desta ocorrência esteja finalizada.',
                 ]);
             }
-        } else {
-            // Caso seu sistema permita criar corretiva avulsa (sem ocorrência), 
-            // e você queira proibir ISSO também, descomente as linhas abaixo:
-            // 
-            throw ValidationException::withMessages([
-                'corretiva' => 'Uma corretiva só pode ser criada a partir de uma ocorrência com inspeção concluída.',
-            ]);
         }
+        // FIX: Corretiva Direta (sem ocorrência) é permitida — bloco else removido.
 
-        // 2. Executa a transação no banco de dados (Seu código original seguro)
         $corretiva = DB::transaction(function () use ($dto, $tecnico) {
             $corretiva = Corretiva::create(array_merge($dto->toArray(), [
                 'status' => 'em_andamento',
                 'inicio' => now(),
             ]));
 
-            // Atualizar status da máquina
             Maquina::find($dto->maquinaId)
                    ->update(['status' => StatusMaquina::Manutencao->value]);
 
-            // Se originada de ocorrência, atualizar status
             if ($dto->ocorrenciaId) {
                 $ocorrencia = Ocorrencia::find($dto->ocorrenciaId);
                 if ($ocorrencia) {
@@ -86,7 +69,6 @@ class CorretivaService
             return $corretiva;
         });
 
-        // 3. Disparo do E-mail (Mantido idêntico)
         try {
             $corretiva->load(['maquina', 'maquina.setor']);
 
@@ -107,9 +89,6 @@ class CorretivaService
         return $corretiva;
     }
 
-    /**
-     * Finalizar corretiva.
-     */
     public function finalizar(
         Corretiva $corretiva,
         string    $solucao,
@@ -138,10 +117,8 @@ class CorretivaService
                 'fim'            => now(),
             ]);
 
-            // Restaurar status da máquina para operando
             $corretiva->maquina->update(['status' => StatusMaquina::Operando->value]);
 
-            // Se originada de ocorrência, finalizar ocorrência
             if ($corretiva->ocorrencia_id && $corretiva->ocorrencia) {
                 $this->ocorrenciaService->transicionarStatus(
                     $corretiva->ocorrencia,
@@ -161,9 +138,6 @@ class CorretivaService
         });
     }
 
-    /**
-     * Estatísticas de corretivas.
-     */
     public function estatisticas(): array
     {
         $mes = now()->startOfMonth();

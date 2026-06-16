@@ -14,17 +14,23 @@ enum StatusSolicitacaoPeca: string implements HasLabel, HasColor
     case PecaRecebida   = 'peca_recebida';
     case Finalizado     = 'finalizado';
 
-    public function getLabel(): string
-    {
-        return match($this) {
-            self::Pendente       => 'Pendente',
-            self::EmCotacao      => 'Em Cotação',
-            self::Aprovado       => 'Aprovado',
-            self::AguardandoPeca => 'Aguardando Peça',
-            self::PecaRecebida   => 'Peça Recebida',
-            self::Finalizado     => 'Finalizado',
-        };
-    }
+    
+public function getLabel(): string
+{
+    return match ($this) {
+        self::Pendente => 'Pendente',
+
+        self::EmCotacao => 'Em Aprovação',
+
+        self::AguardandoPeca => 'Aguardando Peça',
+
+        self::PecaRecebida => 'Peça Recebida',
+
+        self::Finalizado => 'Finalizado',
+
+        self::Aprovado => 'Aprovado',
+    };
+}
 
     public function getColor(): string|array|null
     {

@@ -10,6 +10,7 @@ readonly class InspecaoDTO
         public ?string $diagnostico  = null,
         public ?string $observacoes  = null,
         public ?bool   $necessitaPeca = null,
+        public ?bool $necessitaCorretiva = true,
     ) {}
 
     public static function fromArray(array $data): self
@@ -19,9 +20,12 @@ readonly class InspecaoDTO
             tecnicoId:     (int) $data['tecnico_id'],
             diagnostico:   $data['diagnostico']   ?? null,
             observacoes:   $data['observacoes']   ?? null,
+
             necessitaPeca: isset($data['necessita_peca'])
-                ? (bool) $data['necessita_peca']
-                : null,
+                ? (bool) $data['necessita_peca'] : null,
+
+            necessitaCorretiva: isset($data['necessita_corretiva'])
+                ? (bool) $data['necessita_corretiva'] : true,
         );
     }
 
@@ -33,6 +37,7 @@ readonly class InspecaoDTO
             'diagnostico'   => $this->diagnostico,
             'observacoes'   => $this->observacoes,
             'necessita_peca'=> $this->necessitaPeca,
+            'necessita_corretiva' => $this->necessitaCorretiva,
         ], fn($v) => $v !== null);
     }
 }

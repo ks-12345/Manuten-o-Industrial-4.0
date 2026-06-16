@@ -88,33 +88,58 @@ class InspecaoService
         Inspecao $inspecao,
         string   $diagnostico,
         bool     $necessitaPeca,
+        bool     $necessitaCorretiva,
         User     $tecnico,
         ?string  $observacoes = null
-    ): Inspecao {
+    ): 
+        Inspecao {
         if ($inspecao->estaFinalizada()) {
             throw ValidationException::withMessages([
                 'inspecao' => 'Esta inspeção já foi finalizada.',
             ]);
-            // Dentro da lógica de finalizar a Inspeção:
-if ($inspecao->necessita_corretiva) {
-    \App\Models\Corretiva::create([
-        'maquina_id' => $inspecao->maquina_id,
-        'ocorrencia_id' => $inspecao->ocorrencia_id,
-        'status' => 'pendente', // <-- Ela nasce sem técnico e pendente
-        'tecnico_id' => null,   // Sem dono por enquanto
-        'descricao_falha' => 'Gerada automaticamente via Inspeção #' . $inspecao->id,
-        'inicio' => null,       // Só começa quando alguém assumir
-    ]);
-}
         }
 
-        return DB::transaction(function () use ($inspecao, $diagnostico, $necessitaPeca, $tecnico, $observacoes) {
+        return DB::transaction(
+            function () use 
+            (
+                $inspecao, 
+                $diagnostico, 
+                $necessitaPeca, 
+                $tecnico, 
+                $observacoes, 
+                $necessitaCorretiva
+            ) 
+        {
+            if ($necessitaPeca) {$necessitaCorretiva = true;}
             $inspecao->update([
                 'diagnostico'    => $diagnostico,
                 'observacoes'    => $observacoes,
                 'necessita_peca' => $necessitaPeca,
+                'necessita_corretiva' => $necessitaCorretiva,
                 'fim'            => now(),
             ]);
+            // cria na inspeção e bloquear até a peça chegar
+if ($necessitaCorretiva) {
+
+    \App\Models\Corretiva::firstOrCreate(
+        [
+            'ocorrencia_id' => $inspecao->ocorrencia_id,
+        ],
+        [
+            'maquina_id' => $inspecao->ocorrencia->maquina_id,
+
+            'status' => $necessitaPeca
+                ? 'aguardando_peca'
+                : 'pendente',
+
+            'tecnico_id' => null,
+
+            'descricao_falha' => $diagnostico,
+
+            'inicio' => null,
+        ]
+    );
+}
 
             $this->historicoService->registrar(
                 $inspecao->ocorrencia,

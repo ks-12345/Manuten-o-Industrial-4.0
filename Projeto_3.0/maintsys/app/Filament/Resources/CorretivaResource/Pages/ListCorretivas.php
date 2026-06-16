@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\CorretivaResource\Pages;
 
 use App\Filament\Resources\CorretivaResource;
+use App\Models\Corretiva;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Resources\Components\Tab;
+use Illuminate\Support\Facades\Auth;
 
 class ListCorretivas extends ListRecords
 {
@@ -20,19 +22,51 @@ class ListCorretivas extends ListRecords
 
     public function getTabs(): array
     {
-        return [
-            'pendentes' => Tab::make('Pendentes / Sem Responsável')
-                ->badge(\App\Models\Corretiva::where('status', 'pendente')->count())
+        $user = Auth::user();
+
+        $pendentesCount = Corretiva::where('status', 'pendente')
+            ->whereNull('tecnico_id')
+            ->count();
+
+        $andamentoCount = Corretiva::where('status', 'em_andamento')
+            ->when(! $user->hasRole('admin'), fn ($q) => $q->where('tecnico_id', $user->id))
+            ->count();
+
+        $tabs = [
+            'pendentes' => Tab::make('Pendentes')
+                ->icon('heroicon-o-clock')
+                ->badge($pendentesCount ?: null)
                 ->badgeColor('danger')
-                ->modifyQueryUsing(fn ($query) => $query->where('status', 'pendente')),
+                ->modifyQueryUsing(fn ($query) =>
+                    $query->where('status', 'pendente')->whereNull('tecnico_id')
+                ),
 
             'em_andamento' => Tab::make('Em Andamento')
-                ->modifyQueryUsing(fn ($query) => $query->where('status', 'em_andamento')),
+                ->icon('heroicon-o-play-circle')
+                ->badge($andamentoCount ?: null)
+                ->badgeColor('warning')
+                ->modifyQueryUsing(fn ($query) =>
+                    $query->where('status', 'em_andamento')
+                ),
 
             'finalizadas' => Tab::make('Finalizadas')
-                ->modifyQueryUsing(fn ($query) => $query->where('status', 'finalizada')),
-
-            'all' => Tab::make('Todas'),
+                ->icon('heroicon-o-check-circle')
+                ->modifyQueryUsing(fn ($query) =>
+                    $query->where('status', 'finalizada')
+                ),
         ];
+
+        // Aba "Todas" só para admin — sem ->visible() (não existe no Tab)
+        if ($user->hasRole('admin')) {
+            $tabs['all'] = Tab::make('Todas')
+                ->icon('heroicon-o-list-bullet');
+        }
+
+        return $tabs;
+    }
+
+    public function getDefaultActiveTab(): string | int | null
+    {
+        return 'pendentes';
     }
 }

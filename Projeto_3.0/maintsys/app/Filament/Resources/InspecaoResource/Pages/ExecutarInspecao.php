@@ -31,7 +31,7 @@ class ExecutarInspecao extends Page
     public bool   $necessiPeca = false;
     
     // Força o estado inicial a ser nulo para exigir a seleção (Sim/Não)
-    public ?bool  $necessitaCorretiva = null; 
+    public ?bool  $necessitaCorretiva = true; 
 
     // Métodos acionados pelos botões da primeira etapa
     public function necessitaPeca(): void
@@ -210,7 +210,7 @@ class ExecutarInspecao extends Page
             'formData.observacoes' => ['nullable', 'string'],
             
             // Exige obrigatoriamente a seleção (não pode continuar como null)
-            'necessitaCorretiva'   => ['required', 'boolean'], 
+            'necessitaCorretiva'   => ['boolean'], 
             
             // Validações condicionais de peças
             'nomePeca'             => [$this->necessiPeca ? 'required' : 'nullable', 'string', 'max:255'],
@@ -220,7 +220,7 @@ class ExecutarInspecao extends Page
         ], [
             'formData.diagnostico.required' => 'Informe o diagnóstico antes de finalizar a inspeção.',
             'formData.diagnostico.min'      => 'O diagnóstico deve ter pelo menos 3 caracteres.',
-            'necessitaCorretiva.required'   => 'Você deve responder se a máquina necessita ou não de manutenção corretiva.',
+            // 'necessitaCorretiva.require'   => 'Você deve responder se a máquina necessita ou não de manutenção corretiva.',
             'nomePeca.required'             => 'Informe o nome da peça necessária.',
             'quantidade.required'           => 'Informe a quantidade da peça.',
             'quantidade.min'                => 'A quantidade deve ser pelo menos 1.',
@@ -237,15 +237,18 @@ class ExecutarInspecao extends Page
 
         $service = app(InspecaoService::class);
         $inspecao = $this->record->fresh();
+            if ($this->necessiPeca) {
+                $this->necessitaCorretiva = true;
+        }
 
         if (!$inspecao->estaFinalizada()) {
             $inspecao = $service->finalizar(
                 $inspecao,
-                $this->formData['diagnostico']  ?? '',
+                $this->formData['diagnostico'] ?? '',
                 $this->necessiPeca,
+                $this->necessitaCorretiva,
                 Auth::user(),
                 $this->formData['observacoes'] ?? null,
-                $this->necessitaCorretiva // Passagem correta do parâmetro booleano validado
             );
         }
 
